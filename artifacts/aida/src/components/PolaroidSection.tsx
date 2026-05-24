@@ -4,25 +4,25 @@ import { motion } from "framer-motion";
 const cards = [
   {
     id: 1,
-    front: "Waktu pertama ketemu 🌸",
-    back: "Jujur, hari itu aku deg-degan banget. Nggak nyangka bakal se-klik ini sama kamu.",
+    front: "Cara kamu hadir 🌸",
+    back: "Ada yang beda pas kamu ada di ruangan. Bukan berisik, bukan heboh — tapi somehow semua jadi lebih hidup. Itu bukan kebetulan, itu ya memang kamu.",
     gradient: "from-pink-300 to-rose-200",
     rotate: "-rotate-3",
   },
   {
     id: 2,
-    front: "Hari yang nggak pernah aku lupa ✨",
-    back: "Pas kita jalan bareng dan ngobrol panjang lebar. Rasanya pengen waktu berhenti sebentar aja.",
+    front: "Cara kamu mikir ✨",
+    back: "Kamu punya cara pandang yang nggak biasa — thoughtful, jujur, dan nggak pernah setengah-setengah. Ngobrol sama kamu itu selalu ninggalin sesuatu yang bikin aku mikir lebih dalam.",
     gradient: "from-amber-200 to-orange-300",
     rotate: "rotate-2",
   },
   {
     id: 3,
-    front: "Momen favorit aku 💛",
-    back: "Semua momen pas ngeliat kamu ketawa. Itu hal kecil yang selalu berhasil bikin aku bahagia.",
+    front: "Cara kamu jadi diri sendiri 💛",
+    back: "Kamu nggak pura-pura jadi siapapun. Dan itu hal yang paling langka — dan paling indah — yang aku tau dari kamu.",
     gradient: "from-teal-200 to-emerald-200",
     rotate: "-rotate-1",
-  }
+  },
 ];
 
 export default function PolaroidSection() {
@@ -34,9 +34,9 @@ export default function PolaroidSection() {
         viewport={{ once: true, margin: "-100px" }}
         className="text-center mb-16"
       >
-        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Foto-foto kita 📸</h2>
+        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Yang bikin kamu, kamu 📸</h2>
         <p className="font-indie text-xl text-foreground/70 mt-4 max-w-lg mx-auto">
-          Klik untuk liat ceritanya ya!
+          Klik kartunya ya — ada yang pengen aku bilang.
         </p>
       </motion.div>
 
@@ -49,7 +49,7 @@ export default function PolaroidSection() {
   );
 }
 
-function PolaroidCard({ card, index }: { card: typeof cards[0], index: number }) {
+function PolaroidCard({ card, index }: { card: (typeof cards)[0]; index: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (

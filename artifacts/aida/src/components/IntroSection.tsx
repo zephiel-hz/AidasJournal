@@ -26,7 +26,6 @@ export default function IntroSection() {
 
   return (
     <section className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center">
-      {/* Tape decorations */}
       <div className="absolute top-10 left-10 w-32 h-8 bg-secondary washi-tape -rotate-12 opacity-80" />
       <div className="absolute bottom-20 right-10 w-40 h-10 bg-primary/40 washi-tape rotate-6 opacity-80" />
 
@@ -36,21 +35,20 @@ export default function IntroSection() {
         transition={{ duration: 0.8 }}
         className="max-w-2xl bg-card/60 backdrop-blur-sm p-12 rounded-xl shadow-sm border border-card-border relative"
       >
-        {/* Top center tape */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-accent/60 washi-tape -rotate-2" />
 
         <h1 className="font-caveat text-6xl md:text-8xl text-primary font-bold mb-6 min-h-[1.5em]">
           {text}
           <span className="animate-pulse text-foreground/50">|</span>
         </h1>
-        
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: text.length >= fullText.length ? 1 : 0 }}
           transition={{ duration: 1, delay: 0.5 }}
           className="font-indie text-2xl md:text-3xl text-foreground/80 mb-10"
         >
-          Ada sesuatu yang pengen aku ceritain ke kamu...
+          Aku mau ngomongin sesuatu tentang kamu — sesuatu yang kayaknya udah lama banget pengen aku tulis.
         </motion.p>
 
         <motion.button

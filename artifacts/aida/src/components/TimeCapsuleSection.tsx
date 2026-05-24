@@ -19,7 +19,7 @@ export default function TimeCapsuleSection() {
           days: Math.floor(distance / (1000 * 60 * 60 * 24)),
           hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
           minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
         });
       }
     }, 1000);
@@ -35,7 +35,10 @@ export default function TimeCapsuleSection() {
         viewport={{ once: true }}
         className="text-center mb-12 z-10"
       >
-        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Surat Masa Depan 💌</h2>
+        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Surat Untuk Aida 💌</h2>
+        <p className="font-indie text-xl text-foreground/70 mt-4">
+          Dibuka pas waktunya tiba.
+        </p>
       </motion.div>
 
       <AnimatePresence mode="wait">
@@ -47,7 +50,6 @@ export default function TimeCapsuleSection() {
             exit={{ opacity: 0, scale: 1.2, filter: "blur(10px)" }}
             className="flex flex-col items-center z-10"
           >
-            {/* CSS Envelope */}
             <div className="relative w-80 h-52 bg-card rounded-md shadow-lg border border-card-border overflow-hidden flex items-center justify-center">
               <div className="absolute top-0 w-0 h-0 border-l-[160px] border-r-[160px] border-t-[100px] border-l-transparent border-r-transparent border-t-card-border/40 opacity-50" />
               <Lock className="w-12 h-12 text-primary opacity-80" />
@@ -98,29 +100,39 @@ export default function TimeCapsuleSection() {
           >
             <div className="absolute top-[-15px] right-10 w-24 h-8 bg-primary/30 washi-tape rotate-6" />
             <Unlock className="absolute top-8 right-8 w-8 h-8 text-primary/30" />
-            
-            <h3 className="font-caveat text-4xl text-foreground mb-6">Hai Aida di Masa Depan,</h3>
-            <div className="font-caveat text-2xl text-foreground/90 space-y-4 leading-relaxed">
+
+            <h3 className="font-caveat text-4xl text-foreground mb-6">Untuk Aida,</h3>
+            <div className="font-caveat text-2xl text-foreground/90 space-y-5 leading-relaxed">
               <p>
-                Kalo kamu lagi baca ini, berarti udah setahun lebih sejak aku bikin jurnal kecil ini buat kamu. 
-                Aku harap kamu tetep jadi Aida yang aku kenal—yang ceria, yang sabar, dan yang selalu bisa bikin hari-hari aku berwarna.
+                Aku nulis ini bukan karena ada momen spesial, bukan karena ulang tahun, atau karena ada yang nyuruh.
+                Aku nulis ini karena aku ngerasa kamu perlu tau — dan aku belum pernah bilang langsung dengan cukup jelas.
               </p>
               <p>
-                Mungkin banyak hal yang udah berubah, tapi satu hal yang aku harap nggak berubah: perasaan aku ke kamu.
-                Semoga kita masih sama-sama ngetawain hal-hal receh dan selalu punya cerita buat dibagi.
+                Kamu itu orang yang luar biasa, Aida. Bukan luar biasa versi dramatis atau berlebihan — tapi luar biasa
+                yang genuine. Yang kerasa pas kamu dengerin seseorang sampai selesai. Yang kerasa pas kamu jujur
+                meskipun itu nggak mudah. Yang kerasa pas kamu tetap jadi diri sendiri di situasi yang kebanyakan
+                orang udah pura-pura jadi orang lain.
               </p>
               <p>
-                Makasih ya udah jadi bagian paling indah di perjalanan ini. 
+                Aku kagum sama cara kamu tumbuh. Cara kamu ngambil pelajaran dari hal-hal yang nggak mudah.
+                Cara kamu tetap lembut meskipun dunia nggak selalu baik ke kamu.
+                Itu bukan hal kecil — itu justru hal yang paling susah dipertahanin.
+              </p>
+              <p>
+                Jadi kalau kamu lagi baca ini dan lagi ngerasa nggak cukup — aku mau kamu tau: kamu lebih dari cukup.
+                Kamu udah, selalu, dan akan terus jadi versi terbaik dari dirimu sendiri, bahkan di hari-hari yang
+                ngerasa paling berat sekalipun.
               </p>
               <p className="mt-8">
-                Salam sayang selalu, <br />
-                Dari aku di masa lalu.
+                Bangga banget kenal kamu. <br />
+                — dari seseorang yang genuinely kagum sama kamu.
               </p>
             </div>
-            
+
             <button
               onClick={() => setIsOpen(false)}
               className="mt-10 font-indie text-muted-foreground hover:text-primary transition-colors"
+              data-testid="btn-tutup-surat"
             >
               ← Tutup Surat
             </button>
