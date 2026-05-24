@@ -1,0 +1,110 @@
+lalu buatkan sebuah halaman baru bertema dark romantic dreamy aesthetic dengan nuansa cute, abstrak, dan futuristik, menggunakan animasi 3D yang immersive.
+
+Latar belakang utama menggunakan warna dominan:
+
+deep black
+dark purple
+soft pink neon
+violet glow
+sedikit sentuhan magenta transparan
+
+Atmosfer halaman harus terasa seperti:
+
+dreamy love space
+romantic midnight sky
+abstract floating memories
+aesthetic social chat universe
+
+Jangan tampilkan title, heading, tombol, navbar, atau teks besar di tengah halaman.
+Fokus utama hanya pada animasi bubble chat yang memenuhi layar secara massive.
+
+Buat puluhan hingga ratusan bubble chat transparan bergaya glassmorphism yang bergerak dari bawah ke atas secara terus-menerus dengan motion smooth dan cinematic.
+
+Bubble harus:
+
+berbentuk chat/message bubble modern
+memiliki sudut rounded besar
+semi transparan
+ada efek blur kaca
+memiliki glow pink/violet lembut
+terdapat bayangan neon dreamy
+terlihat floating di ruang 3D
+memiliki depth berbeda-beda
+ukuran bubble random
+posisi horizontal random
+kecepatan naik random
+delay animasi random
+beberapa sedikit blur untuk memberi efek depth kamera
+
+Gerakan bubble:
+
+bubble naik perlahan dari bawah layar menuju atas layar
+gerak sedikit bergeser ke kiri dan kanan
+motion sangat smooth dan calming
+bubble tidak boleh berputar
+isi bubble tetap lurus dan readable
+bubble terlihat seperti melayang di ruang abstrak romantis
+
+Isi bubble terdiri dari:
+
+teks chat pendek romantis
+emoji lucu
+simbol love
+sparkle
+atau foto aesthetic
+
+Contoh isi bubble:
+
+“love u”
+“miss u”
+“good night”
+“🥺❤️”
+“💖💖💖”
+“✨💕”
+
+Sebagian bubble menampilkan:
+
+foto couple aesthetic
+langit malam
+bunga
+kucing lucu
+city lights
+cozy romantic scene
+
+Foto harus:
+
+memenuhi bubble
+tetap lurus
+object-fit cover
+tidak terdistorsi
+
+Tambahkan elemen background agar halaman tidak kosong:
+
+floating glowing particles
+tiny stars
+soft heart symbols transparan
+moon icon
+dreamy fog/cloud blur
+radial gradient glow
+ambient light blobs
+subtle noise texture
+
+Efek visual yang diinginkan:
+
+glassmorphism
+dreamy glow
+neon ambient lighting
+cinematic depth
+romantic cyber aesthetic
+soft blur
+floating particle atmosphere
+
+
+Pastikan:
+
+animasi performant
+fullscreen responsive
+mobile friendly
+tidak ada UI mengganggu
+halaman terasa hidup dan immersive
+visual terlihat premium dan aesthetic seperti artwork modern interactive landing page.

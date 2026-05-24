@@ -3,41 +3,32 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music } from "luc
 import { motion, AnimatePresence } from "framer-motion";
 
 const playlist = [
-  {
-    title: "Satu",
-    artist: "Sufian Suhaimi",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  },
-  {
-    title: "Rehat",
-    artist: "Kunto Aji",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-  },
-  {
-    title: "Masa Muda",
-    artist: "Ran",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-  },
-  {
-    title: "Yang Terdalam",
-    artist: "Project Pop",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-  },
+  { title: "Satu", artist: "Sufian Suhaimi", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+  { title: "Rehat", artist: "Kunto Aji", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+  { title: "Masa Muda", artist: "Ran", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+  { title: "Yang Terdalam", artist: "Project Pop", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
 ];
 
-export default function MusicPlayer() {
-  const [isOpen, setIsOpen] = useState(false);
+interface Props {
+  autoPlay?: boolean;
+}
+
+export default function MusicPlayer({ autoPlay = false }: Props) {
+  const [isOpen, setIsOpen] = useState(autoPlay);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(() => Math.floor(Math.random() * playlist.length));
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(70);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Refs that always hold current values — avoids stale closures in effects
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const pendingPlayRef = useRef(false);
+  const isPlayingRef = useRef(false);
+  const readyHandlerRef = useRef<(() => void) | null>(null);
+  const volumeRef = useRef(0.7);
+  const isMutedRef = useRef(false);
 
-  const song = playlist[currentIdx];
-
-  // Initialize audio element once
+  // Create audio element once
   useEffect(() => {
     const audio = new Audio();
     audio.preload = "none";
@@ -47,73 +38,117 @@ export default function MusicPlayer() {
       setCurrentIdx((prev) => (prev + 1) % playlist.length);
     });
 
-    audio.addEventListener("canplaythrough", () => {
-      setIsLoading(false);
-      if (pendingPlayRef.current) {
-        pendingPlayRef.current = false;
-        audio.play().catch(() => {});
-      }
-    });
-
-    audio.addEventListener("waiting", () => setIsLoading(true));
-    audio.addEventListener("playing", () => setIsLoading(false));
-
     return () => {
       audio.pause();
       audio.src = "";
+      audioRef.current = null;
     };
   }, []);
 
-  // Sync volume and mute
+  // Sync volume ref and audio element
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.volume = isMuted ? 0 : volume / 100;
+    volumeRef.current = volume / 100;
+    isMutedRef.current = isMuted;
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    }
   }, [volume, isMuted]);
 
-  // Load new track when currentIdx changes, auto-play if already playing
+  // Load track when currentIdx changes; auto-play if was playing
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const wasPlaying = isPlaying;
+
+    const shouldPlay = isPlayingRef.current;
+
+    // Clean up any pending ready handler for the previous track
+    if (readyHandlerRef.current) {
+      audio.removeEventListener("canplaythrough", readyHandlerRef.current);
+      readyHandlerRef.current = null;
+    }
+
     audio.pause();
     audio.src = playlist[currentIdx].url;
-    audio.load();
-    if (wasPlaying) {
-      pendingPlayRef.current = true;
+    audio.volume = isMutedRef.current ? 0 : volumeRef.current;
+
+    if (shouldPlay) {
       setIsLoading(true);
+
+      const handler = () => {
+        readyHandlerRef.current = null;
+        audio
+          .play()
+          .then(() => setIsLoading(false))
+          .catch(() => setIsLoading(false));
+      };
+
+      readyHandlerRef.current = handler;
+      audio.addEventListener("canplaythrough", handler, { once: true });
+      audio.load();
     }
+  }, [currentIdx]);
+
+  // Autoplay on mount
+  useEffect(() => {
+    if (!autoPlay) return;
+    const timer = setTimeout(() => {
+      triggerPlay();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const triggerPlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || isPlayingRef.current) return;
+
+    isPlayingRef.current = true;
+    setIsPlaying(true);
+    setIsLoading(true);
+
+    if (!audio.src) {
+      audio.src = playlist[currentIdx].url;
+    }
+
+    // Clean up any previous handler
+    if (readyHandlerRef.current) {
+      audio.removeEventListener("canplaythrough", readyHandlerRef.current);
+    }
+
+    const handler = () => {
+      readyHandlerRef.current = null;
+      audio
+        .play()
+        .then(() => setIsLoading(false))
+        .catch(() => {
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          setIsLoading(false);
+        });
+    };
+
+    readyHandlerRef.current = handler;
+    audio.addEventListener("canplaythrough", handler, { once: true });
+    audio.load();
   }, [currentIdx]);
 
   const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
+    if (isPlayingRef.current) {
+      // Pause
+      if (readyHandlerRef.current) {
+        audio.removeEventListener("canplaythrough", readyHandlerRef.current);
+        readyHandlerRef.current = null;
+      }
       audio.pause();
-      pendingPlayRef.current = false;
+      isPlayingRef.current = false;
       setIsPlaying(false);
+      setIsLoading(false);
     } else {
-      if (!audio.src || audio.src === window.location.href) {
-        audio.src = playlist[currentIdx].url;
-        audio.load();
-      }
-      setIsLoading(true);
-      pendingPlayRef.current = true;
-      setIsPlaying(true);
-      // Try playing; if not ready yet, canplaythrough will handle it
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            pendingPlayRef.current = false;
-            setIsLoading(false);
-          })
-          .catch(() => {
-            // Not ready yet — canplaythrough handler will fire
-          });
-      }
+      triggerPlay();
     }
-  }, [isPlaying, currentIdx]);
+  }, [triggerPlay]);
 
   const handleNext = useCallback(() => {
     setCurrentIdx((prev) => (prev + 1) % playlist.length);
@@ -129,7 +164,7 @@ export default function MusicPlayer() {
     if (isMuted && val > 0) setIsMuted(false);
   };
 
-  const handleMuteToggle = () => setIsMuted((m) => !m);
+  const song = playlist[currentIdx];
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -158,12 +193,12 @@ export default function MusicPlayer() {
                     animate={{ x: isPlaying ? "-100%" : "0%" }}
                     transition={
                       isPlaying
-                        ? { duration: 8, repeat: Infinity, ease: "linear" }
+                        ? { duration: 8, repeat: Infinity, ease: "linear", repeatDelay: 1 }
                         : { duration: 0 }
                     }
                     className="font-indie text-base font-bold text-foreground inline-block"
                   >
-                    {song.title}&nbsp;&nbsp;&nbsp;{isPlaying ? `✦ ${song.title}` : ""}
+                    {song.title}&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;{song.title}
                   </motion.p>
                 </div>
                 <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">{song.artist}</p>
@@ -181,7 +216,7 @@ export default function MusicPlayer() {
               </button>
               <button
                 onClick={handlePlayPause}
-                className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-transform hover:scale-105 shadow-md relative"
+                className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-transform hover:scale-105 shadow-md"
                 data-testid="btn-play-pause"
               >
                 {isLoading ? (
@@ -204,7 +239,7 @@ export default function MusicPlayer() {
             {/* Volume */}
             <div className="flex items-center gap-2">
               <button
-                onClick={handleMuteToggle}
+                onClick={() => setIsMuted((m) => !m)}
                 className="text-foreground/70 hover:text-foreground flex-shrink-0"
                 data-testid="btn-mute"
               >
@@ -224,7 +259,6 @@ export default function MusicPlayer() {
         )}
       </AnimatePresence>
 
-      {/* Toggle button */}
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -236,10 +270,7 @@ export default function MusicPlayer() {
         {isPlaying && (
           <div className="absolute inset-0 pointer-events-none">
             <span className="absolute -top-2 -left-2 text-primary text-xs animate-float opacity-70">♪</span>
-            <span
-              className="absolute -top-4 right-0 text-primary text-[10px] animate-float opacity-50"
-              style={{ animationDelay: "1s" }}
-            >
+            <span className="absolute -top-4 right-0 text-primary text-[10px] animate-float opacity-50" style={{ animationDelay: "1s" }}>
               ♫
             </span>
           </div>
