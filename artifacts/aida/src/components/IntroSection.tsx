@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
 
 export default function IntroSection() {
   const [text, setText] = useState("");
+  const [, setLocation] = useLocation();
   const fullText = "Hai, Aida...";
 
   useEffect(() => {
@@ -16,13 +18,6 @@ export default function IntroSection() {
     }, 150);
     return () => clearInterval(interval);
   }, []);
-
-  const handleScroll = () => {
-    const nextSection = document.getElementById("polaroid-section");
-    if (nextSection) {
-      nextSection.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   return (
     <section className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center">
@@ -52,7 +47,7 @@ export default function IntroSection() {
         </motion.p>
 
         <motion.button
-          onClick={handleScroll}
+          onClick={() => setLocation("/jurnal")}
           whileHover={{ scale: 1.05, rotate: 2 }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, y: 10 }}
