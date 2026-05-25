@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 const cards = [
@@ -24,6 +24,48 @@ const cards = [
     rotate: "-rotate-1",
   },
 ];
+
+interface AutoFitTextProps {
+  text: string;
+  maxSize?: number;
+  minSize?: number;
+  className?: string;
+}
+
+function AutoFitText({ text, maxSize = 28, minSize = 11, className = "" }: AutoFitTextProps) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLParagraphElement>(null);
+  const [fontSize, setFontSize] = useState(maxSize);
+
+  useEffect(() => {
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) return;
+
+    let size = maxSize;
+    inner.style.fontSize = `${size}px`;
+
+    while (size > minSize) {
+      if (inner.offsetHeight <= outer.clientHeight && inner.scrollWidth <= outer.clientWidth) break;
+      size -= 1;
+      inner.style.fontSize = `${size}px`;
+    }
+
+    setFontSize(size);
+  }, [text, maxSize, minSize]);
+
+  return (
+    <div ref={outerRef} className="w-full h-full overflow-hidden flex items-center justify-center">
+      <p
+        ref={innerRef}
+        className={className}
+        style={{ fontSize: `${fontSize}px`, maxWidth: "100%" }}
+      >
+        {text}
+      </p>
+    </div>
+  );
+}
 
 export default function PolaroidSection() {
   return (
@@ -70,16 +112,28 @@ function PolaroidCard({ card, index }: { card: (typeof cards)[0]; index: number 
         <div className="absolute inset-0 backface-hidden bg-white p-4 pb-16 rounded-sm shadow-xl flex flex-col border border-gray-100">
           <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-md shadow-sm washi-tape rotate-2 z-10" />
           <div className={`flex-grow w-full bg-gradient-to-br ${card.gradient} rounded-sm shadow-inner`} />
-          <div className="absolute bottom-4 left-0 w-full text-center px-4">
-            <p className="font-indie text-2xl text-foreground">{card.front}</p>
+          {/* Front label — auto-fit within the 48px bottom strip */}
+          <div className="absolute bottom-3 left-0 w-full px-4" style={{ height: "48px" }}>
+            <AutoFitText
+              text={card.front}
+              maxSize={22}
+              minSize={11}
+              className="font-indie text-foreground text-center leading-tight"
+            />
           </div>
         </div>
 
         {/* Back */}
         <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#fdfbf7] p-6 rounded-sm shadow-xl flex items-center justify-center border border-gray-200">
-          <p className="font-caveat text-3xl text-foreground text-center leading-relaxed">
-            {card.back}
-          </p>
+          {/* Back text fills the inner area (card minus p-6 = 24px each side) */}
+          <div className="w-full h-full">
+            <AutoFitText
+              text={card.back}
+              maxSize={26}
+              minSize={11}
+              className="font-caveat text-foreground text-center leading-relaxed"
+            />
+          </div>
         </div>
       </motion.div>
     </motion.div>
