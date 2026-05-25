@@ -230,16 +230,16 @@ export default function MusicPlayer({ autoPlay = false, variant = "light" }: Pro
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 12, scale: 0.92 }}
             animate={{
               opacity: 1, y: 0, scale: 1,
               background: t.panel,
               borderColor: t.border,
               boxShadow: t.shadow,
             }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            exit={{ opacity: 0, y: 12, scale: 0.92 }}
             transition={{ ...tx, opacity: { duration: 0.2 }, y: { duration: 0.2 }, scale: { duration: 0.2 } }}
-            className="mb-4 backdrop-blur-xl border p-4 rounded-2xl w-72"
+            className="absolute bottom-full right-0 mb-4 backdrop-blur-xl border p-4 rounded-2xl w-72"
             style={{ background: t.panel, borderColor: t.border, boxShadow: t.shadow }}
           >
             {noSongs ? (
