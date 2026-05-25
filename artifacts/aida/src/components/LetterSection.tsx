@@ -23,28 +23,82 @@ export default function LetterSection() {
 
   const handleSecretClick = () => {
     setTransitioning(true);
-    setTimeout(() => setLocation("/dreamy"), 1200);
+    setTimeout(() => setLocation("/dreamy"), 1500);
   };
+
+  // Fixed star positions for the portal transition
+  const portalStars = Array.from({ length: 28 }, (_, i) => ({
+    left: `${((i * 37 + 11) % 100)}%`,
+    top:  `${((i * 53 + 7)  % 100)}%`,
+    size: (i % 3 === 0) ? 2.5 : (i % 3 === 1) ? 1.5 : 1,
+    delay: 0.1 + (i % 7) * 0.07,
+  }));
 
   return (
     <>
-      {/* Full-screen fade-to-dark transition overlay */}
+      {/* Portal transition overlay */}
       <AnimatePresence>
         {transitioning && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center"
-            style={{ background: "radial-gradient(circle at center, #1a0030 0%, #000000 100%)" }}
+            className="fixed inset-0 z-[9999] overflow-hidden pointer-events-none"
+            initial={{ clipPath: "circle(0% at 50% 50%)" }}
+            animate={{ clipPath: "circle(160% at 50% 50%)" }}
+            transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1] }}
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 50% at 50% 50%, #1a0040 0%, #0a001a 45%, #000000 100%)",
+            }}
           >
-            <motion.p
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{ fontFamily: "'Caveat', cursive", fontSize: "2rem", color: "rgba(255,200,240,0.8)" }}
+            {/* Expanding glow ring at center */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+              initial={{ width: 0, height: 0, opacity: 1 }}
+              animate={{ width: "200vmax", height: "200vmax", opacity: 0 }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(180,60,255,0.55) 0%, rgba(255,80,200,0.25) 30%, transparent 65%)",
+              }}
+            />
+
+            {/* Second slower ring — more pink */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+              initial={{ width: 0, height: 0, opacity: 0.8 }}
+              animate={{ width: "120vmax", height: "120vmax", opacity: 0 }}
+              transition={{ duration: 1.1, ease: "easeOut", delay: 0.15 }}
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(255,80,200,0.4) 0%, transparent 60%)",
+              }}
+            />
+
+            {/* Sparkle stars */}
+            {portalStars.map((s, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full bg-white pointer-events-none"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: [0, 1, 0.8, 0], scale: [0, 1, 1, 0] }}
+                transition={{ duration: 0.6, delay: s.delay, ease: "easeOut" }}
+                style={{
+                  left: s.left, top: s.top,
+                  width: s.size, height: s.size,
+                  boxShadow: `0 0 ${s.size * 3}px rgba(255,200,255,0.9)`,
+                }}
+              />
+            ))}
+
+            {/* Central ✨ that pulses then disappears */}
+            <motion.span
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none"
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.3, 1.8, 1.4, 0.6] }}
+              transition={{ duration: 1.2, times: [0, 0.2, 0.7, 1], ease: "easeOut" }}
+              style={{ fontSize: "3.5rem", filter: "drop-shadow(0 0 18px rgba(220,80,255,0.9))" }}
             >
               ✨
-            </motion.p>
+            </motion.span>
           </motion.div>
         )}
       </AnimatePresence>

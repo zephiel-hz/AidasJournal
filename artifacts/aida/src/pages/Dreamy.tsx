@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useLocation } from "wouter";
+import MusicPlayer from "@/components/MusicPlayer";
 
 const MESSAGES = [
   "love u", "miss u", "good night ✨", "🥺❤️", "💖💖💖",
@@ -216,6 +217,9 @@ export default function Dreamy() {
             </div>
           </div>
         ))}
+
+        {/* Music player — dark themed via CSS override on the fixed panel */}
+        <MusicPlayer autoPlay />
 
         {/* Back — very subtle */}
         <button
