@@ -6,6 +6,7 @@ const cards = [
     id: 1,
     front: "Cara kamu hadir 🌸",
     back: "Ada yang beda pas kamu ada di ruangan. Bukan berisik, bukan heboh — tapi somehow semua jadi lebih hidup. Itu bukan kebetulan, itu ya memang kamu.",
+    photo: "/polaroid-1.jpg",
     gradient: "from-pink-300 to-rose-200",
     rotate: "-rotate-3",
   },
@@ -13,6 +14,7 @@ const cards = [
     id: 2,
     front: "Cara kamu mikir ✨",
     back: "Kamu punya cara pandang yang nggak biasa — thoughtful, jujur, dan nggak pernah setengah-setengah. Ngobrol sama kamu itu selalu ninggalin sesuatu yang bikin aku mikir lebih dalam.",
+    photo: "/polaroid-2.jpg",
     gradient: "from-amber-200 to-orange-300",
     rotate: "rotate-2",
   },
@@ -20,6 +22,7 @@ const cards = [
     id: 3,
     front: "Cara kamu jadi diri sendiri 💛",
     back: "Kamu nggak pura-pura jadi siapapun. Dan itu hal yang paling langka — dan paling indah — yang aku tau dari kamu.",
+    photo: "/polaroid-3.jpg",
     gradient: "from-teal-200 to-emerald-200",
     rotate: "-rotate-1",
   },
@@ -67,6 +70,35 @@ function AutoFitText({ text, maxSize = 28, minSize = 11, className = "" }: AutoF
   );
 }
 
+function PhotoOrGradient({ photo, gradient }: { photo: string; gradient: string }) {
+  const [hasPhoto, setHasPhoto] = useState(false);
+  const [tried, setTried] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload  = () => { setHasPhoto(true);  setTried(true); };
+    img.onerror = () => { setHasPhoto(false); setTried(true); };
+    img.src = photo;
+  }, [photo]);
+
+  if (!tried) return <div className={`flex-grow w-full bg-gradient-to-br ${gradient} rounded-sm shadow-inner`} />;
+
+  if (hasPhoto) {
+    return (
+      <div className="flex-grow w-full rounded-sm shadow-inner overflow-hidden">
+        <img
+          src={photo}
+          alt=""
+          className="w-full h-full object-cover"
+          draggable={false}
+        />
+      </div>
+    );
+  }
+
+  return <div className={`flex-grow w-full bg-gradient-to-br ${gradient} rounded-sm shadow-inner`} />;
+}
+
 export default function PolaroidSection() {
   return (
     <section id="polaroid-section" className="w-full min-h-screen py-24 px-6 flex flex-col items-center">
@@ -111,8 +143,8 @@ function PolaroidCard({ card, index }: { card: (typeof cards)[0]; index: number 
         {/* Front */}
         <div className="absolute inset-0 backface-hidden bg-white p-4 pb-16 rounded-sm shadow-xl flex flex-col border border-gray-100">
           <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-md shadow-sm washi-tape rotate-2 z-10" />
-          <div className={`flex-grow w-full bg-gradient-to-br ${card.gradient} rounded-sm shadow-inner`} />
-          {/* Front label — auto-fit within the 48px bottom strip */}
+          <PhotoOrGradient photo={card.photo} gradient={card.gradient} />
+          {/* Front label */}
           <div className="absolute bottom-3 left-0 w-full px-4" style={{ height: "48px" }}>
             <AutoFitText
               text={card.front}
@@ -125,7 +157,6 @@ function PolaroidCard({ card, index }: { card: (typeof cards)[0]; index: number 
 
         {/* Back */}
         <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#fdfbf7] p-6 rounded-sm shadow-xl flex items-center justify-center border border-gray-200">
-          {/* Back text fills the inner area (card minus p-6 = 24px each side) */}
           <div className="w-full h-full">
             <AutoFitText
               text={card.back}

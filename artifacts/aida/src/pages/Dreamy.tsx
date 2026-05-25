@@ -1,6 +1,33 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import MusicPlayer from "@/components/MusicPlayer";
+
+// Photos to show in the bubble stream — upload as /dreamy-1.jpg … /dreamy-5.jpg
+const DREAMY_PHOTOS = [
+  "/dreamy-1.jpg",
+  "/dreamy-2.jpg",
+  "/dreamy-3.jpg",
+  "/dreamy-4.jpg",
+  "/dreamy-5.jpg",
+];
+
+function useAvailablePhotos(paths: string[]) {
+  const [available, setAvailable] = useState<string[]>([]);
+  useEffect(() => {
+    Promise.all(
+      paths.map(
+        (src) =>
+          new Promise<string | null>((resolve) => {
+            const img = new Image();
+            img.onload  = () => resolve(src);
+            img.onerror = () => resolve(null);
+            img.src = src;
+          })
+      )
+    ).then((results) => setAvailable(results.filter(Boolean) as string[]));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return available;
+}
 
 const MESSAGES = [
   "love u", "miss u", "good night ✨", "🥺❤️", "💖💖💖",
@@ -73,6 +100,20 @@ export default function Dreamy() {
   const [, setLocation] = useLocation();
   const bubbles = useMemo(() => generateBubbles(72), []);
   const stars   = useMemo(() => generateStars(120), []);
+  const availablePhotos = useAvailablePhotos(DREAMY_PHOTOS);
+
+  // Pick evenly-spaced bubble indices to carry real photos
+  const photoBubbleIndices = useMemo(() => {
+    const total = bubbles.length;
+    const count = Math.min(availablePhotos.length, 5);
+    if (count === 0) return new Map<number, string>();
+    const step = Math.floor(total / (count + 1));
+    const map = new Map<number, string>();
+    for (let i = 0; i < count; i++) {
+      map.set(step * (i + 1), availablePhotos[i]);
+    }
+    return map;
+  }, [availablePhotos, bubbles.length]);
 
   return (
     <>
@@ -164,59 +205,83 @@ export default function Dreamy() {
         />
 
         {/* Chat Bubbles — staggered positive delay so they rise one by one */}
-        {bubbles.map((b) => (
-          <div key={b.id} className="absolute pointer-events-none"
-            style={{
-              left: `${b.left}%`, bottom: "-220px",
-              animation: `dreamy-rise ${b.duration}s linear ${b.delay}s infinite`,
-              animationFillMode: "backwards",
-              filter: b.blurAmount > 0 ? `blur(${b.blurAmount}px)` : undefined,
-              opacity: b.opacity,
-              zIndex: b.blurAmount > 0 ? 1 : 2,
-            }}
-          >
-            <div style={{
-              "--sway": `${b.swayX}px`,
-              animation: `dreamy-sway ${b.swayDuration}s ease-in-out infinite`,
-            } as React.CSSProperties}>
-              {b.isImage ? (
-                <div style={{
-                  width: `${b.width}px`, height: `${b.width * 0.82}px`,
-                  borderRadius: "20px", background: b.gradient!,
-                  border: "1px solid rgba(255,150,220,0.3)",
-                  boxShadow: "0 0 18px rgba(200,80,255,0.22),0 0 36px rgba(255,50,180,0.1),inset 0 0 18px rgba(255,255,255,0.04)",
-                  overflow: "hidden", position: "relative",
-                }}>
+        {bubbles.map((b) => {
+          const realPhoto = photoBubbleIndices.get(b.id);
+          const showPhoto = b.isImage || !!realPhoto;
+          const photoSize = realPhoto ? 140 : b.width;
+
+          return (
+            <div key={b.id} className="absolute pointer-events-none"
+              style={{
+                left: `${b.left}%`, bottom: "-220px",
+                animation: `dreamy-rise ${b.duration}s linear ${b.delay}s infinite`,
+                animationFillMode: "backwards",
+                filter: b.blurAmount > 0 ? `blur(${b.blurAmount}px)` : undefined,
+                opacity: b.opacity,
+                zIndex: b.blurAmount > 0 ? 1 : 2,
+              }}
+            >
+              <div style={{
+                "--sway": `${b.swayX}px`,
+                animation: `dreamy-sway ${b.swayDuration}s ease-in-out infinite`,
+              } as React.CSSProperties}>
+                {showPhoto ? (
                   <div style={{
-                    position: "absolute", inset: 0,
-                    background: "radial-gradient(circle at 70% 20%,rgba(255,255,255,0.14) 1px,transparent 1px),radial-gradient(circle at 20% 70%,rgba(255,255,255,0.09) 1px,transparent 1px)",
-                    backgroundSize: "28px 28px",
-                  }} />
-                </div>
-              ) : (
-                <div style={{
-                  padding: `${10 + (b.width > 160 ? 5 : 0)}px ${13 + (b.width > 160 ? 5 : 0)}px`,
-                  borderRadius: "22px 22px 22px 6px",
-                  background: "rgba(38,0,78,0.38)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(200,100,255,0.22)",
-                  boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
-                  maxWidth: `${b.width}px`, whiteSpace: "nowrap",
-                }}>
-                  <span style={{
-                    color: "rgba(255,218,243,0.94)",
-                    fontFamily: "'Caveat', cursive",
-                    fontSize: `${14 + (b.width > 150 ? 4 : 0)}px`,
-                    fontWeight: 500, letterSpacing: "0.02em",
-                    textShadow: "0 0 10px rgba(255,100,220,0.55)",
+                    width: `${photoSize}px`, height: `${photoSize}px`,
+                    borderRadius: "16px",
+                    background: realPhoto ? "transparent" : b.gradient!,
+                    border: "2px solid rgba(255,150,220,0.35)",
+                    boxShadow: "0 0 20px rgba(200,80,255,0.28),0 0 40px rgba(255,50,180,0.12),inset 0 0 18px rgba(255,255,255,0.04)",
+                    overflow: "hidden", position: "relative",
                   }}>
-                    {b.content}
-                  </span>
-                </div>
-              )}
+                    {realPhoto ? (
+                      <img
+                        src={realPhoto}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        draggable={false}
+                      />
+                    ) : (
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: "radial-gradient(circle at 70% 20%,rgba(255,255,255,0.14) 1px,transparent 1px),radial-gradient(circle at 20% 70%,rgba(255,255,255,0.09) 1px,transparent 1px)",
+                        backgroundSize: "28px 28px",
+                      }} />
+                    )}
+                    {/* Soft glow overlay on photos */}
+                    {realPhoto && (
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(135deg,rgba(200,80,255,0.08) 0%,transparent 60%,rgba(255,50,180,0.06) 100%)",
+                        pointerEvents: "none",
+                      }} />
+                    )}
+                  </div>
+                ) : (
+                  <div style={{
+                    padding: `${10 + (b.width > 160 ? 5 : 0)}px ${13 + (b.width > 160 ? 5 : 0)}px`,
+                    borderRadius: "22px 22px 22px 6px",
+                    background: "rgba(38,0,78,0.38)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(200,100,255,0.22)",
+                    boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
+                    maxWidth: `${b.width}px`, whiteSpace: "nowrap",
+                  }}>
+                    <span style={{
+                      color: "rgba(255,218,243,0.94)",
+                      fontFamily: "'Caveat', cursive",
+                      fontSize: `${14 + (b.width > 150 ? 4 : 0)}px`,
+                      fontWeight: 500, letterSpacing: "0.02em",
+                      textShadow: "0 0 10px rgba(255,100,220,0.55)",
+                    }}>
+                      {b.content}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Back — very subtle */}
         <button
