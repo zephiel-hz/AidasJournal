@@ -1,8 +1,9 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import Home from "@/pages/Home";
 import Jurnal from "@/pages/Jurnal";
 import Dreamy from "@/pages/Dreamy";
 import NotFound from "@/pages/not-found";
+import MusicPlayer from "@/components/MusicPlayer";
 
 function Router() {
   return (
@@ -15,10 +16,19 @@ function Router() {
   );
 }
 
+function PersistentPlayer() {
+  const [location] = useLocation();
+  const show = location === "/jurnal" || location === "/dreamy";
+  // autoPlay only on first mount when entering /jurnal
+  if (!show) return null;
+  return <MusicPlayer autoPlay />;
+}
+
 export default function App() {
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <Router />
+      <PersistentPlayer />
     </WouterRouter>
   );
 }

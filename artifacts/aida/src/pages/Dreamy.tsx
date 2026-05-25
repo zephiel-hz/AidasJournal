@@ -218,9 +218,6 @@ export default function Dreamy() {
           </div>
         ))}
 
-        {/* Music player — dark themed via CSS override on the fixed panel */}
-        <MusicPlayer autoPlay />
-
         {/* Back — very subtle */}
         <button
           onClick={() => setLocation("/jurnal")}

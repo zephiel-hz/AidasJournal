@@ -1,7 +1,6 @@
 import PolaroidSection from "@/components/PolaroidSection";
 import StickyNotesSection from "@/components/StickyNotesSection";
 import LetterSection from "@/components/LetterSection";
-import MusicPlayer from "@/components/MusicPlayer";
 import FloatingDoodles from "@/components/FloatingDoodles";
 
 export default function Jurnal() {
@@ -13,7 +12,6 @@ export default function Jurnal() {
         <StickyNotesSection />
         <LetterSection />
       </main>
-      <MusicPlayer autoPlay />
     </div>
   );
 }
