@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useLocation } from "wouter";
 
 const MESSAGES = [
@@ -21,281 +21,195 @@ const IMAGE_GRADIENTS = [
   "linear-gradient(135deg, #450a0a 0%, #991b1b 30%, #fca5a5 60%, #fee2e2 100%)",
   "linear-gradient(135deg, #064e3b 0%, #065f46 40%, #a7f3d0 80%, #ecfdf5 100%)",
   "linear-gradient(160deg, #1e1b4b 0%, #4c1d95 40%, #7c3aed 70%, #c4b5fd 100%)",
-  "linear-gradient(135deg, #0c0a09 0%, #292524 40%, #d6d3d1 70%, #fef3c7 100%)",
 ];
 
-function seededRand(seed: number) {
+function sr(seed: number) {
   const x = Math.sin(seed + 1) * 10000;
   return x - Math.floor(x);
 }
 
 interface Bubble {
-  id: number;
-  left: number;
-  width: number;
-  duration: number;
-  delay: number;
-  swayX: number;
-  swayDuration: number;
-  content: string | null;
-  gradient: string | null;
-  isImage: boolean;
-  blurAmount: number;
-  opacity: number;
+  id: number; left: number; width: number;
+  duration: number; delay: number;
+  swayX: number; swayDuration: number;
+  content: string | null; gradient: string | null;
+  isImage: boolean; blurAmount: number; opacity: number;
 }
 
 function generateBubbles(count: number): Bubble[] {
   return Array.from({ length: count }, (_, i) => {
-    const r = (offset: number) => seededRand(i * 17 + offset);
-    const isImage = r(0) < 0.12 && i % 8 === 0;
+    const r = (o: number) => sr(i * 17 + o);
+    const isImage = r(0) < 0.10 && i % 9 === 0;
     return {
       id: i,
-      left: r(1) * 92,
-      width: isImage ? 110 + r(2) * 90 : 80 + r(3) * 130,
-      duration: 12 + r(4) * 14,
-      delay: -(r(5) * 35),
-      swayX: (r(6) - 0.5) * 60,
+      left: r(1) * 90,
+      width: isImage ? 110 + r(2) * 80 : 76 + r(3) * 120,
+      duration: 13 + r(4) * 13,
+      // Positive staggered delay: each bubble enters one by one from bottom
+      delay: 0.3 + i * 0.32,
+      swayX: (r(6) - 0.5) * 55,
       swayDuration: 4 + r(7) * 5,
       content: isImage ? null : MESSAGES[Math.floor(r(8) * MESSAGES.length)],
       gradient: isImage ? IMAGE_GRADIENTS[Math.floor(r(9) * IMAGE_GRADIENTS.length)] : null,
       isImage,
-      blurAmount: r(10) < 0.25 ? 1 + r(11) * 2 : 0,
+      blurAmount: r(10) < 0.2 ? 1 + r(11) * 2 : 0,
       opacity: 0.55 + r(12) * 0.45,
     };
   });
 }
 
-const STAR_COUNT = 120;
-
 function generateStars(count: number) {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    left: seededRand(i * 3 + 99) * 100,
-    top: seededRand(i * 7 + 13) * 100,
-    size: seededRand(i * 5 + 42) < 0.7 ? 1 : seededRand(i * 5 + 42) < 0.9 ? 1.5 : 2,
-    delay: seededRand(i * 11 + 77) * 4,
-    duration: 2 + seededRand(i * 13 + 55) * 3,
+    left: sr(i * 3 + 99) * 100, top: sr(i * 7 + 13) * 100,
+    size: sr(i * 5 + 42) < 0.7 ? 1 : sr(i * 5 + 42) < 0.92 ? 1.5 : 2,
+    delay: sr(i * 11 + 77) * 4,
+    duration: 2 + sr(i * 13 + 55) * 3,
   }));
 }
 
 export default function Dreamy() {
   const [, setLocation] = useLocation();
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const bubbles = useMemo(() => generateBubbles(72), []);
-  const stars = useMemo(() => generateStars(STAR_COUNT), []);
+  const stars   = useMemo(() => generateStars(120), []);
 
   return (
     <>
       <style>{`
-        @keyframes bubble-rise {
+        @keyframes dreamy-rise {
           0%   { transform: translateY(0px); opacity: 0; }
-          6%   { opacity: 1; }
-          88%  { opacity: 0.8; }
-          100% { transform: translateY(calc(-110vh - 300px)); opacity: 0; }
+          7%   { opacity: 1; }
+          88%  { opacity: 0.85; }
+          100% { transform: translateY(calc(-110vh - 260px)); opacity: 0; }
         }
-        @keyframes bubble-sway {
+        @keyframes dreamy-sway {
           0%   { transform: translateX(0px); }
-          25%  { transform: translateX(var(--sway)); }
-          75%  { transform: translateX(calc(var(--sway) * -0.6)); }
+          30%  { transform: translateX(var(--sway)); }
+          70%  { transform: translateX(calc(var(--sway) * -0.55)); }
           100% { transform: translateX(0px); }
         }
-        @keyframes star-twinkle {
-          0%, 100% { opacity: 0.15; transform: scale(1); }
-          50%       { opacity: 1;    transform: scale(1.4); }
+        @keyframes dreamy-star {
+          0%, 100% { opacity: 0.1; transform: scale(1); }
+          50%       { opacity: 0.9; transform: scale(1.5); }
         }
-        @keyframes glow-pulse {
-          0%, 100% { opacity: 0.12; transform: scale(1); }
-          50%       { opacity: 0.28; transform: scale(1.08); }
+        @keyframes dreamy-glow {
+          0%, 100% { opacity: 0.1; transform: scale(1); }
+          50%       { opacity: 0.26; transform: scale(1.07); }
         }
-        @keyframes particle-float {
-          0%   { transform: translateY(0) translateX(0); opacity: 0; }
-          10%  { opacity: 0.6; }
-          90%  { opacity: 0.4; }
-          100% { transform: translateY(-60px) translateX(20px); opacity: 0; }
-        }
-        @keyframes heart-drift {
-          0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
-          15%  { opacity: 0.4; }
-          85%  { opacity: 0.2; }
-          100% { transform: translateY(-40px) rotate(15deg); opacity: 0; }
+        @keyframes dreamy-heart {
+          0%   { transform: translateY(0) rotate(-5deg); opacity: 0; }
+          15%  { opacity: 0.35; }
+          85%  { opacity: 0.15; }
+          100% { transform: translateY(-50px) rotate(10deg); opacity: 0; }
         }
       `}</style>
 
       <div
-        ref={containerRef}
         className="fixed inset-0 overflow-hidden"
-        style={{
-          background: "linear-gradient(160deg, #000000 0%, #07001a 25%, #100028 50%, #0a001f 75%, #000000 100%)",
-        }}
+        style={{ background: "linear-gradient(160deg,#000000 0%,#07001a 25%,#100028 55%,#0a001f 80%,#000000 100%)" }}
       >
-        {/* Ambient glow blobs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute rounded-full"
+        {/* Glow blobs */}
+        {[
+          { w: "58vw", t: "-14vw", r: "-8vw",  b: undefined, l: undefined, color: "rgba(170,40,255,0.18)", d: "7s",  dl: "0s"  },
+          { w: "68vw", t: undefined, r: undefined, b: "-18vw", l: "-12vw", color: "rgba(255,40,180,0.15)", d: "9s",  dl: "-3s" },
+          { w: "38vw", t: "28%",  r: undefined, b: undefined, l: "28%",   color: "rgba(100,0,255,0.10)",  d: "11s", dl: "-5s" },
+          { w: "28vw", t: "8%",   r: undefined, b: undefined, l: "15%",   color: "rgba(255,100,200,0.12)",d: "6s",  dl: "-1s" },
+        ].map((blob, i) => (
+          <div key={i} className="absolute rounded-full pointer-events-none"
             style={{
-              width: "60vw", height: "60vw",
-              top: "-15vw", right: "-10vw",
-              background: "radial-gradient(circle, rgba(180,40,255,0.18) 0%, rgba(120,0,200,0.08) 50%, transparent 70%)",
-              animation: "glow-pulse 7s ease-in-out infinite",
+              width: blob.w, height: blob.w,
+              top: blob.t, right: blob.r, bottom: blob.b, left: blob.l,
+              background: `radial-gradient(circle, ${blob.color} 0%, transparent 68%)`,
+              animation: `dreamy-glow ${blob.d} ease-in-out infinite`,
+              animationDelay: blob.dl,
             }}
           />
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "70vw", height: "70vw",
-              bottom: "-20vw", left: "-15vw",
-              background: "radial-gradient(circle, rgba(255,40,180,0.15) 0%, rgba(200,0,120,0.06) 50%, transparent 70%)",
-              animation: "glow-pulse 9s ease-in-out infinite",
-              animationDelay: "-3s",
-            }}
-          />
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "40vw", height: "40vw",
-              top: "30%", left: "30%",
-              background: "radial-gradient(circle, rgba(100,0,255,0.1) 0%, rgba(60,0,180,0.04) 50%, transparent 70%)",
-              animation: "glow-pulse 11s ease-in-out infinite",
-              animationDelay: "-5s",
-            }}
-          />
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "30vw", height: "30vw",
-              top: "10%", left: "20%",
-              background: "radial-gradient(circle, rgba(255,100,200,0.12) 0%, transparent 65%)",
-              animation: "glow-pulse 6s ease-in-out infinite",
-              animationDelay: "-1s",
-            }}
-          />
-        </div>
+        ))}
 
         {/* Stars */}
-        <div className="absolute inset-0 pointer-events-none">
-          {stars.map((star) => (
-            <div
-              key={star.id}
-              className="absolute rounded-full bg-white"
-              style={{
-                left: `${star.left}%`,
-                top: `${star.top}%`,
-                width: `${star.size}px`,
-                height: `${star.size}px`,
-                animation: `star-twinkle ${star.duration}s ease-in-out infinite`,
-                animationDelay: `${-star.delay}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Floating hearts */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div
-            key={`heart-${i}`}
-            className="absolute pointer-events-none select-none text-pink-400"
+        {stars.map((s) => (
+          <div key={s.id} className="absolute rounded-full bg-white pointer-events-none"
             style={{
-              left: `${seededRand(i * 23 + 5) * 90}%`,
-              bottom: `${seededRand(i * 31 + 7) * 80}%`,
-              fontSize: `${10 + seededRand(i * 19 + 3) * 14}px`,
-              opacity: 0.25,
-              animation: `heart-drift ${5 + seededRand(i * 41 + 9) * 6}s ease-in-out infinite`,
-              animationDelay: `${-seededRand(i * 53 + 11) * 8}s`,
-            }}
-          >
-            ♡
-          </div>
-        ))}
-
-        {/* Floating particles */}
-        {Array.from({ length: 30 }, (_, i) => (
-          <div
-            key={`particle-${i}`}
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              left: `${seededRand(i * 37 + 15) * 100}%`,
-              bottom: `${seededRand(i * 43 + 21) * 80}%`,
-              width: `${2 + seededRand(i * 47 + 17) * 3}px`,
-              height: `${2 + seededRand(i * 47 + 17) * 3}px`,
-              background: i % 3 === 0
-                ? "rgba(255,100,200,0.7)"
-                : i % 3 === 1
-                ? "rgba(160,80,255,0.7)"
-                : "rgba(255,255,255,0.5)",
-              animation: `particle-float ${4 + seededRand(i * 53 + 23) * 6}s ease-in-out infinite`,
-              animationDelay: `${-seededRand(i * 61 + 27) * 8}s`,
+              left: `${s.left}%`, top: `${s.top}%`,
+              width: `${s.size}px`, height: `${s.size}px`,
+              animation: `dreamy-star ${s.duration}s ease-in-out infinite`,
+              animationDelay: `${-s.delay}s`,
             }}
           />
         ))}
 
-        {/* Chat Bubbles */}
-        {bubbles.map((bubble) => (
-          <div
-            key={bubble.id}
-            className="absolute pointer-events-none"
+        {/* Floating hearts */}
+        {Array.from({ length: 10 }, (_, i) => (
+          <div key={i} className="absolute pointer-events-none select-none text-pink-400"
             style={{
-              left: `${bubble.left}%`,
-              bottom: "-220px",
-              animation: `bubble-rise ${bubble.duration}s linear infinite`,
-              animationDelay: `${bubble.delay}s`,
-              filter: bubble.blurAmount > 0 ? `blur(${bubble.blurAmount}px)` : undefined,
-              opacity: bubble.opacity,
-              zIndex: bubble.blurAmount > 0 ? 1 : 2,
+              left: `${sr(i * 23 + 5) * 90}%`, bottom: `${sr(i * 31 + 7) * 80}%`,
+              fontSize: `${10 + sr(i * 19 + 3) * 14}px`, opacity: 0.25,
+              animation: `dreamy-heart ${5 + sr(i * 41 + 9) * 6}s ease-in-out infinite`,
+              animationDelay: `${-sr(i * 53 + 11) * 8}s`,
+            }}
+          >♡</div>
+        ))}
+
+        {/* Moon */}
+        <div className="absolute pointer-events-none"
+          style={{
+            top: "7%", right: "7%", width: "44px", height: "44px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 35%, rgba(255,240,200,0.9), rgba(220,180,255,0.4))",
+            boxShadow: "0 0 28px rgba(255,220,180,0.3), 0 0 55px rgba(200,150,255,0.15)",
+            opacity: 0.65,
+            animation: "dreamy-glow 8s ease-in-out infinite",
+          }}
+        />
+
+        {/* Chat Bubbles — staggered positive delay so they rise one by one */}
+        {bubbles.map((b) => (
+          <div key={b.id} className="absolute pointer-events-none"
+            style={{
+              left: `${b.left}%`, bottom: "-220px",
+              animation: `dreamy-rise ${b.duration}s linear ${b.delay}s infinite`,
+              animationFillMode: "backwards",
+              filter: b.blurAmount > 0 ? `blur(${b.blurAmount}px)` : undefined,
+              opacity: b.opacity,
+              zIndex: b.blurAmount > 0 ? 1 : 2,
             }}
           >
-            <div
-              style={{
-                "--sway": `${bubble.swayX}px`,
-                animation: `bubble-sway ${bubble.swayDuration}s ease-in-out infinite`,
-                animationDelay: `${-(bubble.delay % bubble.swayDuration)}s`,
-              } as React.CSSProperties}
-            >
-              {bubble.isImage ? (
-                /* Image bubble */
-                <div
-                  style={{
-                    width: `${bubble.width}px`,
-                    height: `${bubble.width * 0.85}px`,
-                    borderRadius: "20px",
-                    background: bubble.gradient!,
-                    border: "1px solid rgba(255,150,220,0.3)",
-                    boxShadow: "0 0 20px rgba(200,80,255,0.25), 0 0 40px rgba(255,50,180,0.1), inset 0 0 20px rgba(255,255,255,0.04)",
-                    backdropFilter: "blur(2px)",
-                    overflow: "hidden",
-                    position: "relative",
-                  }}
-                >
-                  {/* Subtle star dots overlay */}
+            <div style={{
+              "--sway": `${b.swayX}px`,
+              animation: `dreamy-sway ${b.swayDuration}s ease-in-out infinite`,
+            } as React.CSSProperties}>
+              {b.isImage ? (
+                <div style={{
+                  width: `${b.width}px`, height: `${b.width * 0.82}px`,
+                  borderRadius: "20px", background: b.gradient!,
+                  border: "1px solid rgba(255,150,220,0.3)",
+                  boxShadow: "0 0 18px rgba(200,80,255,0.22),0 0 36px rgba(255,50,180,0.1),inset 0 0 18px rgba(255,255,255,0.04)",
+                  overflow: "hidden", position: "relative",
+                }}>
                   <div style={{
                     position: "absolute", inset: 0,
-                    background: "radial-gradient(circle at 70% 20%, rgba(255,255,255,0.15) 1px, transparent 1px), radial-gradient(circle at 20% 70%, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                    backgroundSize: "30px 30px",
+                    background: "radial-gradient(circle at 70% 20%,rgba(255,255,255,0.14) 1px,transparent 1px),radial-gradient(circle at 20% 70%,rgba(255,255,255,0.09) 1px,transparent 1px)",
+                    backgroundSize: "28px 28px",
                   }} />
                 </div>
               ) : (
-                /* Text bubble */
-                <div
-                  style={{
-                    padding: `${10 + (bubble.width > 160 ? 6 : 0)}px ${14 + (bubble.width > 160 ? 6 : 0)}px`,
-                    borderRadius: "22px 22px 22px 6px",
-                    background: "rgba(40, 0, 80, 0.35)",
-                    backdropFilter: "blur(12px)",
-                    border: "1px solid rgba(200,100,255,0.25)",
-                    boxShadow: "0 0 16px rgba(180,60,255,0.2), 0 0 32px rgba(255,40,180,0.08), inset 0 1px 0 rgba(255,255,255,0.08)",
-                    maxWidth: `${bubble.width}px`,
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div style={{
+                  padding: `${10 + (b.width > 160 ? 5 : 0)}px ${13 + (b.width > 160 ? 5 : 0)}px`,
+                  borderRadius: "22px 22px 22px 6px",
+                  background: "rgba(38,0,78,0.38)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(200,100,255,0.22)",
+                  boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
+                  maxWidth: `${b.width}px`, whiteSpace: "nowrap",
+                }}>
                   <span style={{
-                    color: "rgba(255,220,245,0.95)",
+                    color: "rgba(255,218,243,0.94)",
                     fontFamily: "'Caveat', cursive",
-                    fontSize: `${14 + (bubble.width > 150 ? 4 : 0)}px`,
-                    fontWeight: 500,
-                    letterSpacing: "0.02em",
-                    textShadow: "0 0 12px rgba(255,100,220,0.6)",
+                    fontSize: `${14 + (b.width > 150 ? 4 : 0)}px`,
+                    fontWeight: 500, letterSpacing: "0.02em",
+                    textShadow: "0 0 10px rgba(255,100,220,0.55)",
                   }}>
-                    {bubble.content}
+                    {b.content}
                   </span>
                 </div>
               )}
@@ -303,48 +217,20 @@ export default function Dreamy() {
           </div>
         ))}
 
-        {/* Moon */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            top: "8%", right: "8%",
-            width: "48px", height: "48px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle at 35% 35%, rgba(255,240,200,0.9), rgba(220,180,255,0.4))",
-            boxShadow: "0 0 30px rgba(255,220,180,0.3), 0 0 60px rgba(200,150,255,0.15)",
-            opacity: 0.7,
-            animation: "glow-pulse 8s ease-in-out infinite",
-          }}
-        />
-
-        {/* Back button — very subtle */}
+        {/* Back — very subtle */}
         <button
           onClick={() => setLocation("/jurnal")}
           data-testid="btn-back-jurnal"
           style={{
-            position: "fixed",
-            bottom: "24px",
-            left: "24px",
-            zIndex: 50,
-            background: "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,150,220,0.2)",
-            borderRadius: "100px",
-            padding: "8px 18px",
-            color: "rgba(255,200,240,0.5)",
-            fontFamily: "'Indie Flower', cursive",
-            fontSize: "14px",
-            cursor: "pointer",
-            transition: "all 0.3s",
+            position: "fixed", bottom: "24px", left: "24px", zIndex: 50,
+            background: "rgba(255,255,255,0.04)", backdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,150,220,0.18)", borderRadius: "100px",
+            padding: "7px 16px", color: "rgba(255,200,240,0.4)",
+            fontFamily: "'Indie Flower', cursive", fontSize: "13px",
+            cursor: "pointer", transition: "all 0.3s",
           }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,200,240,0.9)";
-            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,200,240,0.5)";
-            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)";
-          }}
+          onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = "rgba(255,200,240,0.85)"; b.style.background = "rgba(255,255,255,0.09)"; }}
+          onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = "rgba(255,200,240,0.4)"; b.style.background = "rgba(255,255,255,0.04)"; }}
         >
           ← kembali
         </button>
