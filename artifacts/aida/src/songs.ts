@@ -12,8 +12,8 @@ export interface Song {
 
 export const SONGS: Song[] = [
   // Contoh — ganti dengan lagu asli kamu:
-  // { title: "Satu",          artist: "Sufian Suhaimi", file: "satu.mp3"          },
-  // { title: "Rehat",         artist: "Kunto Aji",      file: "rehat.mp3"         },
+  { title: "Tak Di Tanganku",          artist: "Juicy Luicy", file: "Tak di tanganku.mp3"          },
+  { title: "Bentuk Cinta",         artist: "Eclat",      file: "bentuk cinta.mp3"         },
   // { title: "Masa Muda",     artist: "Ran",            file: "masa-muda.mp3"     },
   // { title: "Yang Terdalam", artist: "Project Pop",    file: "yang-terdalam.mp3" },
 ];
