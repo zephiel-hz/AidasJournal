@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 const notes = [
   {
@@ -39,6 +40,37 @@ const notes = [
   },
 ];
 
+function AutoFitText({ text }: { text: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState(28);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let size = 28;
+    el.style.fontSize = `${size}px`;
+
+    while (size > 11) {
+      if (el.scrollHeight <= el.clientHeight && el.scrollWidth <= el.clientWidth) break;
+      size -= 1;
+      el.style.fontSize = `${size}px`;
+    }
+
+    setFontSize(size);
+  }, [text]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="font-caveat text-foreground text-center leading-relaxed overflow-hidden w-full h-full flex items-center justify-center"
+      style={{ fontSize: `${fontSize}px` }}
+    >
+      {text}
+    </div>
+  );
+}
+
 export default function StickyNotesSection() {
   return (
     <section className="w-full min-h-screen py-24 px-6 flex flex-col items-center">
@@ -65,13 +97,16 @@ export default function StickyNotesSection() {
             whileHover={{ scale: 1.1, translateY: -10, zIndex: 20 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: i * 0.1 }}
-            className={`w-64 h-64 p-6 ${note.color} ${note.rotate} shadow-md hover:shadow-2xl flex items-center justify-center relative cursor-default`}
+            className={`w-64 h-64 ${note.color} ${note.rotate} shadow-md hover:shadow-2xl relative cursor-default`}
             data-testid={`sticky-note-${note.id}`}
           >
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-4 bg-white/50 backdrop-blur-sm washi-tape" />
-            <p className="font-caveat text-3xl text-foreground text-center leading-relaxed">
-              {note.text}
-            </p>
+            {/* Washi tape */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-4 bg-white/50 backdrop-blur-sm washi-tape z-10" />
+
+            {/* Text area — pt accounts for washi tape, p-5 for padding */}
+            <div className="absolute inset-0 pt-7 p-5 overflow-hidden">
+              <AutoFitText text={note.text} />
+            </div>
           </motion.div>
         ))}
       </div>
