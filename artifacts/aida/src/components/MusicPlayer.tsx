@@ -47,8 +47,12 @@ export default function MusicPlayer({ autoPlay = false, variant = "light" }: Pro
   );
   const [isPlaying, setIsPlaying]   = useState(false);
   const [isOpen,    setIsOpen]      = useState(false);
-  const [isMuted,   setIsMuted]     = useState(false);
-  const [volume,    setVolume]      = useState(70);
+  const [isMuted,   setIsMuted]     = useState(() => {
+    try { return localStorage.getItem("mp_muted") === "1"; } catch { return false; }
+  });
+  const [volume,    setVolume]      = useState(() => {
+    try { const v = Number(localStorage.getItem("mp_volume")); return (v >= 0 && v <= 100) ? v : 70; } catch { return 70; }
+  });
   const [loadError, setLoadError]   = useState(false);
   const [isLoading, setIsLoading]   = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -63,8 +67,8 @@ export default function MusicPlayer({ autoPlay = false, variant = "light" }: Pro
   const isMutedRef      = useRef(isMuted);
   const isSeekingRef    = useRef(false);
 
-  useEffect(() => { volumeRef.current  = volume;  }, [volume]);
-  useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+  useEffect(() => { volumeRef.current  = volume;  try { localStorage.setItem("mp_volume", String(volume)); } catch {} }, [volume]);
+  useEffect(() => { isMutedRef.current = isMuted; try { localStorage.setItem("mp_muted",  isMuted ? "1" : "0"); } catch {} }, [isMuted]);
 
   // ── build audio element per track ───────────────────────
   useEffect(() => {
@@ -397,9 +401,19 @@ export default function MusicPlayer({ autoPlay = false, variant = "light" }: Pro
                       setVolume(v);
                       if (isMuted && v > 0) setIsMuted(false);
                     }}
-                    className="w-full h-1 rounded-lg appearance-none cursor-pointer"
-                    style={{ accentColor: t.accent }}
+                    className="flex-1 h-1 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      accentColor: t.accent,
+                      background: `linear-gradient(to right, ${t.accent} 0%, ${t.accent} ${isMuted ? 0 : volume}%, rgba(128,128,128,0.25) ${isMuted ? 0 : volume}%, rgba(128,128,128,0.25) 100%)`,
+                    }}
                   />
+                  <motion.span
+                    animate={{ color: t.time }}
+                    transition={tx}
+                    className="flex-shrink-0 text-[11px] tabular-nums w-7 text-right"
+                  >
+                    {isMuted ? 0 : volume}%
+                  </motion.span>
                 </div>
               </>
             )}
