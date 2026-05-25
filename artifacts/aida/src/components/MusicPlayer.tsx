@@ -3,9 +3,42 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music, AlertCircl
 import { motion, AnimatePresence } from "framer-motion";
 import { SONGS } from "@/songs";
 
-interface Props { autoPlay?: boolean; }
+const THEMES = {
+  light: {
+    panel:   "rgba(255,255,255,0.88)",
+    border:  "rgba(255,255,255,0.65)",
+    shadow:  "0 20px 60px rgba(0,0,0,0.12)",
+    title:   "rgba(30,10,30,0.92)",
+    artist:  "rgba(120,90,120,0.72)",
+    time:    "rgba(120,90,120,0.52)",
+    ctrl:    "rgba(40,20,40,0.82)",
+    mute:    "rgba(80,50,80,0.70)",
+    playBg:  "#f472b6",
+    accent:  "#f472b6",
+    fabBg:   "#f472b6",
+  },
+  dark: {
+    panel:   "rgba(8,0,22,0.84)",
+    border:  "rgba(180,70,255,0.32)",
+    shadow:  "0 0 28px rgba(150,40,255,0.22), 0 8px 32px rgba(0,0,0,0.55)",
+    title:   "rgba(255,215,250,0.95)",
+    artist:  "rgba(210,160,248,0.72)",
+    time:    "rgba(190,130,242,0.55)",
+    ctrl:    "rgba(232,195,255,0.82)",
+    mute:    "rgba(200,155,242,0.65)",
+    playBg:  "#a855f7",
+    accent:  "#c084fc",
+    fabBg:   "#9333ea",
+  },
+} as const;
 
-export default function MusicPlayer({ autoPlay = false }: Props) {
+type Variant = keyof typeof THEMES;
+
+interface Props { autoPlay?: boolean; variant?: Variant; }
+
+export default function MusicPlayer({ autoPlay = false, variant = "light" }: Props) {
+  const t = THEMES[variant];
+  const tx = { duration: 0.55, ease: "easeInOut" } as const;
   const noSongs = SONGS.length === 0;
 
   // Start on a random song every page load
@@ -198,36 +231,82 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            animate={{
+              opacity: 1, y: 0, scale: 1,
+              background: t.panel,
+              borderColor: t.border,
+              boxShadow: t.shadow,
+            }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="mb-4 bg-white/85 backdrop-blur-xl border border-white/60 p-4 rounded-2xl shadow-2xl w-72"
+            transition={{ ...tx, opacity: { duration: 0.2 }, y: { duration: 0.2 }, scale: { duration: 0.2 } }}
+            className="mb-4 backdrop-blur-xl border p-4 rounded-2xl w-72"
+            style={{ background: t.panel, borderColor: t.border, boxShadow: t.shadow }}
           >
             {noSongs ? (
               <div className="flex flex-col items-center gap-2 py-3 text-center">
-                <AlertCircle className="text-primary/60" size={28} />
-                <p className="font-indie text-sm text-foreground/70 leading-snug">
+                <AlertCircle size={28} style={{ color: t.accent }} />
+                <p className="font-indie text-sm leading-snug" style={{ color: t.artist }}>
                   Belum ada lagu.{" "}
-                  Upload MP3 ke <code className="text-xs bg-black/5 px-1 rounded">public/music/</code>{" "}
-                  lalu daftarkan di <code className="text-xs bg-black/5 px-1 rounded">src/songs.ts</code>
+                  Upload MP3 ke{" "}
+                  <code className="text-xs px-1 rounded" style={{ background: "rgba(128,128,128,0.12)" }}>
+                    public/music/
+                  </code>{" "}
+                  lalu daftarkan di{" "}
+                  <code className="text-xs px-1 rounded" style={{ background: "rgba(128,128,128,0.12)" }}>
+                    src/songs.ts
+                  </code>
                 </p>
               </div>
             ) : (
               <>
                 {/* Disc + title row */}
                 <div className="flex items-center gap-4 mb-3">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-md flex-shrink-0 ${isPlaying ? "animate-spin-slow" : ""}`}>
-                    <div className="w-4 h-4 rounded-full bg-primary/90 border-2 border-white shadow" />
-                  </div>
+                  <motion.div
+                    animate={{
+                      background: variant === "dark"
+                        ? "linear-gradient(135deg,#2d0060,#1a003a)"
+                        : "linear-gradient(135deg,#374151,#111827)",
+                      boxShadow: variant === "dark"
+                        ? `0 0 14px ${t.accent}55`
+                        : "0 2px 8px rgba(0,0,0,0.25)",
+                    }}
+                    transition={tx}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isPlaying ? "animate-spin-slow" : ""}`}
+                  >
+                    <motion.div
+                      animate={{ background: t.accent }}
+                      transition={tx}
+                      className="w-4 h-4 rounded-full border-2 border-white shadow"
+                    />
+                  </motion.div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-indie text-base font-bold text-foreground truncate">{song?.title}</p>
-                    <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">{song?.artist}</p>
+                    <motion.p
+                      animate={{ color: t.title }}
+                      transition={tx}
+                      className="font-indie text-base font-bold truncate"
+                    >
+                      {song?.title}
+                    </motion.p>
+                    <motion.p
+                      animate={{ color: t.artist }}
+                      transition={tx}
+                      className="font-sans text-xs truncate mt-0.5"
+                    >
+                      {song?.artist}
+                    </motion.p>
                     {loadError && (
                       <p className="font-sans text-[10px] text-red-400 mt-0.5 truncate">
                         File tidak ditemukan: /music/{song?.file}
                       </p>
                     )}
                     {isLoading && !loadError && (
-                      <p className="font-sans text-[10px] text-foreground/40 mt-0.5">memuat…</p>
+                      <motion.p
+                        animate={{ color: t.time }}
+                        transition={tx}
+                        className="font-sans text-[10px] mt-0.5"
+                      >
+                        memuat…
+                      </motion.p>
                     )}
                   </div>
                 </div>
@@ -246,47 +325,70 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
                     onChange={(e) => handleSeekMove(+e.target.value)}
                     onMouseUp={(e) => handleSeekEnd(+(e.target as HTMLInputElement).value)}
                     onTouchEnd={(e) => handleSeekEnd(+(e.target as HTMLInputElement).value)}
-                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary disabled:opacity-30 disabled:cursor-default"
+                    className="w-full h-1 rounded-lg appearance-none cursor-pointer disabled:opacity-30 disabled:cursor-default"
+                    style={{
+                      accentColor: t.accent,
+                      background: `linear-gradient(to right, ${t.accent} ${duration ? (displayTime/duration)*100 : 0}%, ${t.border} 0%)`,
+                      transition: "background 0.1s",
+                    }}
                   />
                   <div className="flex justify-between mt-1">
-                    <span className="font-sans text-[10px] text-foreground/40">{fmt(displayTime)}</span>
-                    <span className="font-sans text-[10px] text-foreground/40">{fmt(duration)}</span>
+                    <motion.span animate={{ color: t.time }} transition={tx} className="font-sans text-[10px]">
+                      {fmt(displayTime)}
+                    </motion.span>
+                    <motion.span animate={{ color: t.time }} transition={tx} className="font-sans text-[10px]">
+                      {fmt(duration)}
+                    </motion.span>
                   </div>
                 </div>
 
                 {/* Controls */}
                 <div className="flex items-center justify-between mb-3">
-                  <button
+                  <motion.button
                     onClick={handlePrev}
                     disabled={SONGS.length <= 1}
-                    className="p-2 hover:bg-black/5 rounded-full transition-colors text-foreground disabled:opacity-30"
+                    animate={{ color: t.ctrl }}
+                    transition={tx}
+                    className="p-2 rounded-full transition-opacity disabled:opacity-30"
+                    whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                   >
                     <SkipBack size={18} />
-                  </button>
-                  <button
+                  </motion.button>
+
+                  <motion.button
                     onClick={handlePlayPause}
                     disabled={loadError}
-                    className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-transform hover:scale-105 shadow-md disabled:opacity-40"
+                    animate={{ background: t.playBg }}
+                    transition={tx}
+                    className="p-3 text-white rounded-full shadow-md disabled:opacity-40"
+                    whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
+                    style={{ background: t.playBg }}
                   >
                     {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
-                  </button>
-                  <button
+                  </motion.button>
+
+                  <motion.button
                     onClick={handleNext}
                     disabled={SONGS.length <= 1}
-                    className="p-2 hover:bg-black/5 rounded-full transition-colors text-foreground disabled:opacity-30"
+                    animate={{ color: t.ctrl }}
+                    transition={tx}
+                    className="p-2 rounded-full transition-opacity disabled:opacity-30"
+                    whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                   >
                     <SkipForward size={18} />
-                  </button>
+                  </motion.button>
                 </div>
 
                 {/* Volume */}
                 <div className="flex items-center gap-2">
-                  <button
+                  <motion.button
                     onClick={() => setIsMuted((m) => !m)}
-                    className="text-foreground/70 hover:text-foreground flex-shrink-0"
+                    animate={{ color: t.mute }}
+                    transition={tx}
+                    className="flex-shrink-0"
                   >
                     {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                  </button>
+                  </motion.button>
                   <input
                     type="range" min="0" max="100"
                     value={isMuted ? 0 : volume}
@@ -295,7 +397,8 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
                       setVolume(v);
                       if (isMuted && v > 0) setIsMuted(false);
                     }}
-                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                    className="w-full h-1 rounded-lg appearance-none cursor-pointer"
+                    style={{ accentColor: t.accent }}
                   />
                 </div>
               </>
@@ -308,14 +411,31 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
+        animate={{
+          background: t.fabBg,
+          boxShadow: variant === "dark"
+            ? `0 0 18px ${t.fabBg}80, 0 4px 16px rgba(0,0,0,0.4)`
+            : `0 4px 20px ${t.fabBg}50`,
+        }}
+        transition={tx}
         onClick={() => setIsOpen((o) => !o)}
-        className="w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center relative"
+        className="w-14 h-14 text-white rounded-full flex items-center justify-center relative"
+        style={{ background: t.fabBg }}
       >
         <Music className={isPlaying ? "animate-pulse" : ""} />
         {isPlaying && (
           <div className="absolute inset-0 pointer-events-none">
-            <span className="absolute -top-2 -left-2 text-primary text-xs animate-float opacity-70">♪</span>
-            <span className="absolute -top-4 right-0 text-primary text-[10px] animate-float opacity-50" style={{ animationDelay: "1s" }}>♫</span>
+            <motion.span
+              animate={{ color: t.accent }}
+              transition={tx}
+              className="absolute -top-2 -left-2 text-xs animate-float opacity-70"
+            >♪</motion.span>
+            <motion.span
+              animate={{ color: t.accent }}
+              transition={tx}
+              className="absolute -top-4 right-0 text-[10px] animate-float opacity-50"
+              style={{ animationDelay: "1s" }}
+            >♫</motion.span>
           </div>
         )}
       </motion.button>

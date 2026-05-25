@@ -19,9 +19,8 @@ function Router() {
 function PersistentPlayer() {
   const [location] = useLocation();
   const show = location === "/jurnal" || location === "/dreamy";
-  // autoPlay only on first mount when entering /jurnal
   if (!show) return null;
-  return <MusicPlayer autoPlay />;
+  return <MusicPlayer autoPlay variant={location === "/dreamy" ? "dark" : "light"} />;
 }
 
 export default function App() {
