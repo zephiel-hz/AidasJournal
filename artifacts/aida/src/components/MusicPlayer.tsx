@@ -18,12 +18,17 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
   const [volume,    setVolume]      = useState(70);
   const [loadError, setLoadError]   = useState(false);
   const [isLoading, setIsLoading]   = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration,    setDuration]    = useState(0);
+  const [isSeeking,   setIsSeeking]   = useState(false);
+  const [seekValue,   setSeekValue]   = useState(0);
 
   // Refs so event handlers always see the latest value without stale closures
   const audioRef        = useRef<HTMLAudioElement | null>(null);
   const pendingPlayRef  = useRef(false);   // should we play when audio is ready?
   const volumeRef       = useRef(volume);
   const isMutedRef      = useRef(isMuted);
+  const isSeekingRef    = useRef(false);
 
   useEffect(() => { volumeRef.current  = volume;  }, [volume]);
   useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
@@ -50,6 +55,9 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
 
     setLoadError(false);
     setIsLoading(true);
+    setCurrentTime(0);
+    setDuration(0);
+    setSeekValue(0);
 
     const onReady = () => {
       if (cancelled) return;
@@ -72,9 +80,21 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
       setCurrentIdx((p) => (p + 1) % SONGS.length);
     };
 
-    audio.addEventListener("canplaythrough", onReady, { once: true });
-    audio.addEventListener("error",          onError, { once: true });
-    audio.addEventListener("ended",          onEnded, { once: true });
+    const onTimeUpdate = () => {
+      if (cancelled || isSeekingRef.current) return;
+      setCurrentTime(audio.currentTime);
+    };
+
+    const onMetadata = () => {
+      if (cancelled) return;
+      setDuration(audio.duration);
+    };
+
+    audio.addEventListener("canplaythrough",  onReady,      { once: true });
+    audio.addEventListener("error",           onError,      { once: true });
+    audio.addEventListener("ended",           onEnded,      { once: true });
+    audio.addEventListener("timeupdate",      onTimeUpdate);
+    audio.addEventListener("loadedmetadata",  onMetadata);
     audio.load();
 
     return () => {
@@ -84,6 +104,8 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
       audio.removeEventListener("canplaythrough", onReady);
       audio.removeEventListener("error",          onError);
       audio.removeEventListener("ended",          onEnded);
+      audio.removeEventListener("timeupdate",     onTimeUpdate);
+      audio.removeEventListener("loadedmetadata", onMetadata);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIdx, noSongs]);
@@ -111,6 +133,29 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
   const handlePlayPause = () => { isPlaying ? doPause() : doPlay(); };
   const handleNext      = () => setCurrentIdx((p) => (p + 1) % SONGS.length);
   const handlePrev      = () => setCurrentIdx((p) => (p - 1 + SONGS.length) % SONGS.length);
+
+  const handleSeekStart = (v: number) => {
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+    setSeekValue(v);
+  };
+  const handleSeekMove  = (v: number) => { setSeekValue(v); };
+  const handleSeekEnd   = (v: number) => {
+    if (audioRef.current) audioRef.current.currentTime = v;
+    setCurrentTime(v);
+    setSeekValue(v);
+    isSeekingRef.current = false;
+    setIsSeeking(false);
+  };
+
+  const fmt = (s: number) => {
+    if (!isFinite(s) || isNaN(s)) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  const displayTime = isSeeking ? seekValue : currentTime;
 
   // ── autoplay on mount ────────────────────────────────────
   useEffect(() => {
@@ -169,25 +214,12 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
             ) : (
               <>
                 {/* Disc + title row */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-3">
                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-md flex-shrink-0 ${isPlaying ? "animate-spin-slow" : ""}`}>
                     <div className="w-4 h-4 rounded-full bg-primary/90 border-2 border-white shadow" />
                   </div>
-                  <div className="overflow-hidden flex-1 min-w-0">
-                    <div className="overflow-hidden whitespace-nowrap">
-                      <motion.p
-                        key={currentIdx}
-                        initial={{ x: "100%" }}
-                        animate={{ x: isPlaying ? "-100%" : "0%" }}
-                        transition={isPlaying
-                          ? { duration: 8, repeat: Infinity, ease: "linear", repeatDelay: 1 }
-                          : { duration: 0 }
-                        }
-                        className="font-indie text-base font-bold text-foreground inline-block"
-                      >
-                        {song?.title}&nbsp;&nbsp;✦&nbsp;&nbsp;{song?.title}
-                      </motion.p>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-indie text-base font-bold text-foreground truncate">{song?.title}</p>
                     <p className="font-sans text-xs text-muted-foreground truncate mt-0.5">{song?.artist}</p>
                     {loadError && (
                       <p className="font-sans text-[10px] text-red-400 mt-0.5 truncate">
@@ -200,8 +232,30 @@ export default function MusicPlayer({ autoPlay = false }: Props) {
                   </div>
                 </div>
 
+                {/* Seek slider */}
+                <div className="mb-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 1}
+                    step="0.5"
+                    value={displayTime}
+                    disabled={!duration || loadError}
+                    onMouseDown={(e) => handleSeekStart(+(e.target as HTMLInputElement).value)}
+                    onTouchStart={(e) => handleSeekStart(+(e.target as HTMLInputElement).value)}
+                    onChange={(e) => handleSeekMove(+e.target.value)}
+                    onMouseUp={(e) => handleSeekEnd(+(e.target as HTMLInputElement).value)}
+                    onTouchEnd={(e) => handleSeekEnd(+(e.target as HTMLInputElement).value)}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary disabled:opacity-30 disabled:cursor-default"
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="font-sans text-[10px] text-foreground/40">{fmt(displayTime)}</span>
+                    <span className="font-sans text-[10px] text-foreground/40">{fmt(duration)}</span>
+                  </div>
+                </div>
+
                 {/* Controls */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={handlePrev}
                     disabled={SONGS.length <= 1}
