@@ -30,16 +30,18 @@ function useAvailablePhotos(paths: string[]) {
 }
 
 const MESSAGES = [
-  "love u", "miss u", "good night ✨", "🥺❤️", "💖💖💖",
-  "you're everything", "thinking of you", "forever 🌙", "✨💕",
-  "my favorite person", "💌", "stay", "💗", "dream of me",
-  "hi hi hi", "u up?", "🌸", "always", "💫",
-  "so pretty", "adore u", "🫶", "precious", "baby",
-  "cute 🌙", "⭐", "hello love", "💝", "dreaming",
-  "hehe", "🌺", "yours", "💜", "ethereal",
-  "softly", "glow", "💓", "shimmer", "moonlight",
-  "✦", "forever & ever", "close to you", "🌙✨",
-  "safe here", "gentle", "warmth", "tender 🌸",
+  "lucu deh", "kangen", "semangat ya ✨", "🥺❤️", "💖💖💖",
+  "moodbooster bgt", "kepikiran terus", "stay terus 🥰", "✨💕",
+  "favoritku", "💌", "jangan ngilang ya", "💗", "kamu pasti bisa",
+  "haii cantikk", "jangan nyerah ya", "🌸", "selalu", "💫",
+  "cantik bgt", "gemes bgt", "🫶", "anak baik", "manis",
+  "gemes 🌙", "⭐", "halo manis", "💝", "kamu hebat",
+  "hehe", "🌺", "seneng deh", "💜", "cantik parah",
+  "malu banget -//-", "lucu", "💓", "bikin salting", "keren",
+  "jangan asing", "jangan ngilang dong", "pengen ketemu", "🌙✨",
+  "paling nyaman", "asik orangnya", "pengen ngobrol terus", "manisnya 🌸",
+  "semangat ya ✨", "good luck hari ini!", "proud of u", "jangan lupa senyum",
+  "seneng deh", "lagi apa?", "aww 😍",
 ];
 
 const IMAGE_GRADIENTS = [
@@ -265,7 +267,7 @@ export default function Dreamy() {
                     backdropFilter: "blur(12px)",
                     border: "1px solid rgba(200,100,255,0.22)",
                     boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
-                    maxWidth: `${b.width}px`, whiteSpace: "nowrap",
+                    maxWidth: `${b.width}px`,
                   }}>
                     <span style={{
                       color: "rgba(255,218,243,0.94)",

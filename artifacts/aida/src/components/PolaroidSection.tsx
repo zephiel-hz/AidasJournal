@@ -12,7 +12,7 @@ const cards = [
   },
   {
     id: 2,
-    front: "Cara kamu mikir ✨",
+    front: "Cara kamu berpikir ✨",
     back: "Kamu punya cara pandang yang nggak biasa — thoughtful, jujur, dan nggak pernah setengah-setengah. Ngobrol sama kamu itu selalu ninggalin sesuatu yang bikin aku mikir lebih dalam.",
     photo: "/polaroid-2.jpg",
     gradient: "from-amber-200 to-orange-300",
