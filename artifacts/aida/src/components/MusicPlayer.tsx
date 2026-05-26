@@ -51,7 +51,14 @@ export default function MusicPlayer({ autoPlay = false, variant = "light" }: Pro
     try { return localStorage.getItem("mp_muted") === "1"; } catch { return false; }
   });
   const [volume,    setVolume]      = useState(() => {
-    try { const v = Number(localStorage.getItem("mp_volume")); return (v >= 0 && v <= 100) ? v : 70; } catch { return 70; }
+    try { 
+      const stored = localStorage.getItem("mp_volume");
+      if (stored === null) return 50; // tidak ada nilai di localStorage
+      const v = Number(stored);
+      return (v >= 0 && v <= 100) ? v : 50;
+    } catch { 
+      return 50;
+    }
   });
   const [loadError, setLoadError]   = useState(false);
   const [isLoading, setIsLoading]   = useState(false);
