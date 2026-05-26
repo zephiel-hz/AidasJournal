@@ -13,11 +13,14 @@
         }
       ],
       "commands": [
-        "corepack pnpm --filter @workspace/aida run build"
+        "PORT=3000 BASE_PATH=/ corepack pnpm --filter @workspace/aida run build"
       ]
     }
   },
   "deploy": {
-    "startCommand": "corepack pnpm --filter @workspace/aida run serve -- --port $PORT"
+    "startCommand": "corepack pnpm --filter @workspace/aida run serve -- --port $PORT",
+    "variables": {
+      "BASE_PATH": "/"
+    }
   }
 }
