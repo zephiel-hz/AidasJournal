@@ -41,6 +41,7 @@ const MESSAGES = [
   "jangan asing", "jangan ngilang dong", "pengen ketemu", "🌙✨",
   "paling nyaman", "asik orangnya", "pengen ngobrol terus", "manisnya 🌸",
   "semangat ya ✨", "good luck hari ini!", "proud of u", "jangan lupa senyum",
+  "😝😝😝",
 ];
 
 const IMAGE_GRADIENTS = [

@@ -5,7 +5,7 @@ const cards = [
   {
     id: 1,
     front: "Cara kamu hadir 🌸",
-    back: "Ada yang beda pas kamu ada di ruangan. Bukan berisik, bukan heboh — tapi somehow semua jadi lebih hidup. Itu bukan kebetulan, itu ya memang kamu.",
+    back: "Ada yang beda tiap kali nama kamu muncul di layar HP dan laptopku. Bukan karena kamu heboh atau gimana, tapi somehow obrolan sama kamu selalu bikin hari-hariku jadi jauh lebih hidup.",
     photo: "/polaroid-1.jpg",
     gradient: "from-pink-300 to-rose-200",
     rotate: "-rotate-3",
@@ -108,7 +108,7 @@ export default function PolaroidSection() {
         viewport={{ once: true, margin: "-100px" }}
         className="text-center mb-16"
       >
-        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Yang bikin kamu, kamu 📸</h2>
+        <h2 className="font-caveat text-5xl md:text-6xl text-primary font-bold">Semua hal kecil yang bikin kamu jadi 'kamu'. 📸</h2>
         <p className="font-indie text-xl text-foreground/70 mt-4 max-w-lg mx-auto">
           Klik kartunya ya — ada yang pengen aku bilang.
         </p>
