@@ -41,7 +41,6 @@ const MESSAGES = [
   "jangan asing", "jangan ngilang dong", "pengen ketemu", "🌙✨",
   "paling nyaman", "asik orangnya", "pengen ngobrol terus", "manisnya 🌸",
   "semangat ya ✨", "good luck hari ini!", "proud of u", "jangan lupa senyum",
-  "seneng deh", "lagi apa?", "aww 😍",
 ];
 
 const IMAGE_GRADIENTS = [
@@ -209,8 +208,13 @@ export default function Dreamy() {
         {/* Chat Bubbles — staggered positive delay so they rise one by one */}
         {bubbles.map((b) => {
           const realPhoto = photoBubbleIndices.get(b.id);
-          const showPhoto = b.isImage || !!realPhoto;
-          const photoSize = realPhoto ? 140 : b.width;
+          // Only show a photo square when there's an actual uploaded photo.
+          // Gradient-only isImage slots are skipped (rendered as nothing).
+          const showPhoto = !!realPhoto;
+          const photoSize = 140;
+
+          // Skip isImage slots that have no real photo — nothing to show
+          if (b.isImage && !realPhoto) return null;
 
           return (
             <div key={b.id} className="absolute pointer-events-none"
