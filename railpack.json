@@ -13,7 +13,7 @@
         }
       ],
       "commands": [
-        "PORT=3000 BASE_PATH=/ corepack pnpm --filter @workspace/aida run build"
+        "VITE_ASSET_VERSION=$(git rev-parse --short HEAD 2>/dev/null || date +%s) PORT=3000 BASE_PATH=/ corepack pnpm --filter @workspace/aida run build"
       ]
     }
   },

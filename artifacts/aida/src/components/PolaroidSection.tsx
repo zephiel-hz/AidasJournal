@@ -74,24 +74,31 @@ function PhotoOrGradient({ photo, gradient }: { photo: string; gradient: string 
   const [hasPhoto, setHasPhoto] = useState(false);
   const [tried, setTried] = useState(false);
 
+  // Embed Vite env var for cache-busting. If VITE_ASSET_VERSION is set at build time,
+  // append it as a query string to public asset URLs so browsers will fetch new
+  // versions after deploy without changing filenames.
+  const assetVersion = (import.meta as any).env?.VITE_ASSET_VERSION ?? "";
+  const url = assetVersion ? `${photo}?v=${assetVersion}` : photo;
+
   useEffect(() => {
     const img = new Image();
-    img.onload  = () => { setHasPhoto(true);  setTried(true); };
-    img.onerror = () => { setHasPhoto(false); setTried(true); };
-    img.src = photo;
-  }, [photo]);
+    img.onload = () => {
+      setHasPhoto(true);
+      setTried(true);
+    };
+    img.onerror = () => {
+      setHasPhoto(false);
+      setTried(true);
+    };
+    img.src = url;
+  }, [url]);
 
   if (!tried) return <div className={`flex-grow w-full bg-gradient-to-br ${gradient} rounded-sm shadow-inner`} />;
 
   if (hasPhoto) {
     return (
       <div className="flex-grow w-full rounded-sm shadow-inner overflow-hidden">
-        <img
-          src={photo}
-          alt=""
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
+        <img src={url} alt="" className="w-full h-full object-cover" draggable={false} />
       </div>
     );
   }
