@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "install": {
+      "commands": [
+        "corepack pnpm install --frozen-lockfile"
+      ]
+    },
+    "build": {
+      "inputs": [
+        {
+          "step": "install"
+        }
+      ],
+      "commands": [
+        "corepack pnpm --filter @workspace/aida run build"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "corepack pnpm --filter @workspace/aida run serve -- --port $PORT"
+  }
+}
