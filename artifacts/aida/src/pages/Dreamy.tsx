@@ -2,13 +2,22 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import MusicPlayer from "@/components/MusicPlayer";
 
-// Photos to show in the bubble stream — upload as /dreamy-1.jpg … /dreamy-5.jpg
+// Photos to show in the bubble stream — upload as /dreamy-1.jpg … /dreamy-14.jpg
 const DREAMY_PHOTOS = [
   "/dreamy-1.jpg",
   "/dreamy-2.jpg",
   "/dreamy-3.jpg",
   "/dreamy-4.jpg",
   "/dreamy-5.jpg",
+  "/dreamy-6.jpg",
+  "/dreamy-7.jpg",
+  "/dreamy-8.jpg",
+  "/dreamy-9.jpg",
+  "/dreamy-10.jpg",
+  "/dreamy-11.jpg",
+  "/dreamy-12.jpg",
+  "/dreamy-13.jpg",
+  "/dreamy-14.jpg",
 ];
 
 function useAvailablePhotos(paths: string[]) {
@@ -107,7 +116,7 @@ export default function Dreamy() {
   // Pick evenly-spaced bubble indices to carry real photos
   const photoBubbleIndices = useMemo(() => {
     const total = bubbles.length;
-    const count = Math.min(availablePhotos.length, 5);
+    const count = Math.min(availablePhotos.length, 14);
     if (count === 0) return new Map<number, string>();
     const step = Math.floor(total / (count + 1));
     const map = new Map<number, string>();
@@ -223,9 +232,9 @@ export default function Dreamy() {
                 left: `${b.left}%`, bottom: "-220px",
                 animation: `dreamy-rise ${b.duration}s linear ${b.delay}s infinite`,
                 animationFillMode: "backwards",
-                filter: b.blurAmount > 0 ? `blur(${b.blurAmount}px)` : undefined,
+                filter: showPhoto ? undefined : b.blurAmount > 0 ? `blur(${b.blurAmount}px)` : undefined,
                 opacity: b.opacity,
-                zIndex: b.blurAmount > 0 ? 1 : 2,
+                zIndex: showPhoto ? 3 : b.blurAmount > 0 ? 1 : 2,
               }}
             >
               <div style={{

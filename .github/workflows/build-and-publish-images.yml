@@ -1,0 +1,56 @@
+name: Build and Publish Images
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-publish:
+    name: Build and publish Docker images to GHCR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: artifacts/aida/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/aida-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/aida-frontend:${{ github.sha }}
+
+      - name: Build and push api image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: artifacts/api-server/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/aida-api:latest
+            ghcr.io/${{ github.repository_owner }}/aida-api:${{ github.sha }}
+
+      - name: Output image names
+        run: |
+          echo "FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/aida-frontend:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "API_IMAGE=ghcr.io/${{ github.repository_owner }}/aida-api:${{ github.sha }}" >> $GITHUB_OUTPUT
