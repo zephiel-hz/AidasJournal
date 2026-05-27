@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import MusicPlayer from "@/components/MusicPlayer";
 
@@ -42,7 +42,7 @@ const MESSAGES = [
   "lucu deh", "kangen", "semangat ya ✨", "🥺❤️", "💖💖💖",
   "moodbooster bgt", "kepikiran terus", "stay terus 🥰", "✨💕",
   "favoritku", "💌", "jangan ngilang ya", "💗", "kamu pasti bisa",
-  "haii cantikk", "jangan nyerah ya", "🌸", "selalu", "💫",
+  "haii cantikk", "jangan nyerah ya", "🌸", "cakep as always", "💫",
   "cantik bgt", "gemes bgt", "🫶", "anak baik", "manis",
   "gemes 🌙", "⭐", "halo manis", "💝", "kamu hebat",
   "hehe", "🌺", "seneng deh", "💜", "cantik parah",
@@ -50,7 +50,7 @@ const MESSAGES = [
   "jangan asing", "jangan ngilang dong", "pengen ketemu", "🌙✨",
   "paling nyaman", "asik orangnya", "pengen ngobrol terus", "manisnya 🌸",
   "semangat ya ✨", "good luck hari ini!", "proud of u", "jangan lupa senyum",
-  "😝😝😝",
+  "😝😝😝", "MBG (My Bojo Gueh)",
 ];
 
 const IMAGE_GRADIENTS = [
@@ -109,6 +109,7 @@ function generateStars(count: number) {
 
 export default function Dreamy() {
   const [, setLocation] = useLocation();
+  const modalOverlayRef = useRef<HTMLDivElement | null>(null);
   const bubbles = useMemo(() => generateBubbles(72), []);
   const stars   = useMemo(() => generateStars(120), []);
   const availablePhotos = useAvailablePhotos(DREAMY_PHOTOS);
@@ -125,6 +126,70 @@ export default function Dreamy() {
     }
     return map;
   }, [availablePhotos, bubbles.length]);
+
+  const [selected, setSelected] = useState<null | { id: number; type: "photo" | "chat"; src?: string; content?: string }>(null);
+  // Modal visible state for smooth transitions (mount stays while animating)
+  const [modalVisible, setModalVisible] = useState(false);
+  // Bounding rect of the clicked bubble/photo to animate from
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
+  const animatedRef = useRef<HTMLDivElement | null>(null);
+  const modalImageRef = useRef<HTMLImageElement | null>(null);
+
+  function openModal(payload: { id: number; type: "photo" | "chat"; src?: string; content?: string }, rect?: DOMRect | null) {
+    // validate rect — some transforms/animations can yield 0/NaN sizes
+    let safeRect = rect ?? null;
+    if (safeRect) {
+      if (!isFinite(safeRect.width) || !isFinite(safeRect.height) || safeRect.width <= 0 || safeRect.height <= 0) {
+        console.warn("[Dreamy] openModal: invalid origin rect, ignoring", rect);
+        safeRect = null;
+      }
+    }
+    setOriginRect(safeRect);
+    setSelected(payload);
+    // small delay to allow mount before transition
+    setTimeout(() => setModalVisible(true), 12);
+  }
+
+  useEffect(() => {
+    if (selected) console.log("[Dreamy] openModal ->", selected, { originRect, modalVisible });
+  }, [selected, originRect, modalVisible]);
+
+  function closeModal() {
+    setModalVisible(false);
+    // wait for transition to finish before unmount
+    setTimeout(() => {
+      setSelected(null);
+      setOriginRect(null);
+    }, 260);
+  }
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") closeModal();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!modalVisible) return;
+    console.log('[Dreamy] modalVisible=true, originRect=', originRect);
+    if (animatedRef.current) {
+      try {
+        const rect = animatedRef.current.getBoundingClientRect();
+        console.log('[Dreamy] animated wrapper rect=', rect);
+        console.log('[Dreamy] animated computed transform=', getComputedStyle(animatedRef.current).transform);
+        console.log('[Dreamy] animated zIndex=', getComputedStyle(animatedRef.current).zIndex);
+      } catch (err) {
+        console.warn('[Dreamy] animated ref inspect failed', err);
+      }
+    }
+    if (modalImageRef.current) {
+      console.log('[Dreamy] modal image element present, complete=', modalImageRef.current.complete, 'naturalWidth=', modalImageRef.current.naturalWidth, 'naturalHeight=', modalImageRef.current.naturalHeight);
+    } else {
+      console.log('[Dreamy] modal image element NOT present');
+    }
+  }, [modalVisible]);
 
   return (
     <>
@@ -225,9 +290,10 @@ export default function Dreamy() {
 
           // Skip isImage slots that have no real photo — nothing to show
           if (b.isImage && !realPhoto) return null;
+          if (selected?.id === b.id) return null;
 
           return (
-            <div key={b.id} className="absolute pointer-events-none"
+            <div key={b.id} className="absolute"
               style={{
                 left: `${b.left}%`, bottom: "-220px",
                 animation: `dreamy-rise ${b.duration}s linear ${b.delay}s infinite`,
@@ -237,10 +303,7 @@ export default function Dreamy() {
                 zIndex: showPhoto ? 3 : b.blurAmount > 0 ? 1 : 2,
               }}
             >
-              <div style={{
-                "--sway": `${b.swayX}px`,
-                animation: `dreamy-sway ${b.swayDuration}s ease-in-out infinite`,
-              } as React.CSSProperties}>
+                <div style={{ ['--sway' as any]: `${b.swayX}px`, animation: `dreamy-sway ${b.swayDuration}s ease-in-out infinite` } as any}>
                 {showPhoto ? (
                   <div style={{
                     width: `${photoSize}px`, height: `${photoSize}px`,
@@ -249,13 +312,16 @@ export default function Dreamy() {
                     border: "2px solid rgba(255,150,220,0.35)",
                     boxShadow: "0 0 20px rgba(200,80,255,0.28),0 0 40px rgba(255,50,180,0.12),inset 0 0 18px rgba(255,255,255,0.04)",
                     overflow: "hidden", position: "relative",
+                    cursor: "pointer",
                   }}>
                     {realPhoto ? (
                       <img
                         src={realPhoto}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                         draggable={false}
+                        onClick={(e) => {
+                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          openModal({ id: b.id, type: "photo", src: realPhoto }, rect);
+                        }}
                       />
                     ) : (
                       <div style={{
@@ -274,7 +340,12 @@ export default function Dreamy() {
                     )}
                   </div>
                 ) : (
-                  <div style={{
+                  <div
+                  onClick={(e) => {
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    openModal({ id: b.id, type: "chat", content: b.content ?? undefined }, rect);
+                  }}
+                  style={{
                     padding: `${10 + (b.width > 160 ? 5 : 0)}px ${13 + (b.width > 160 ? 5 : 0)}px`,
                     borderRadius: "22px 22px 22px 6px",
                     background: "rgba(38,0,78,0.38)",
@@ -282,6 +353,7 @@ export default function Dreamy() {
                     border: "1px solid rgba(200,100,255,0.22)",
                     boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
                     maxWidth: `${b.width}px`,
+                    cursor: "pointer",
                   }}>
                     <span style={{
                       color: "rgba(255,218,243,0.94)",
@@ -298,6 +370,134 @@ export default function Dreamy() {
             </div>
           );
         })}
+
+        {/* Modal / Lightbox */}
+        {selected && (
+          <div
+            ref={modalOverlayRef}
+            onClick={(e) => { if (e.target === modalOverlayRef.current) closeModal(); }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: modalVisible ? "rgba(6,6,12,0.6)" : "rgba(6,6,12,0.0)",
+              backdropFilter: modalVisible ? "blur(8px)" : "blur(0px)",
+              zIndex: 120,
+              padding: "28px",
+              transition: "background 220ms ease, backdrop-filter 220ms ease, opacity 200ms ease",
+              opacity: modalVisible ? 1 : 0,
+              pointerEvents: modalVisible ? "auto" : "none",
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                maxWidth: "96vw",
+                maxHeight: "94vh",
+                transition: "transform 260ms cubic-bezier(.2,.9,.2,1), opacity 200ms ease",
+                willChange: "transform, opacity",
+                opacity: modalVisible ? 1 : 0,
+                transformOrigin: "center center",
+              }}
+            >
+              {/* Animated wrapper: translate from originRect center to viewport center while scaling */}
+              <div
+                ref={animatedRef}
+                style={(function() {
+                  // If originRect is not provided, center the modal normally
+                  if (!originRect) {
+                    const defaultW = typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.9, 900) : 700;
+                    return {
+                      position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%,-50%)',
+                      width: `${Math.round(defaultW)}px`, height: 'auto',
+                      transition: 'left 260ms ease, top 260ms ease, width 260ms ease, height 260ms ease, opacity 200ms ease',
+                      borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden', zIndex: 500,
+                    };
+                  }
+
+                  // Compute origin center and target sizes based on image natural size
+                  const ox = originRect.left + originRect.width / 2;
+                  const oy = originRect.top + originRect.height / 2;
+                  const naturalW = modalImageRef.current?.naturalWidth ?? originRect.width;
+                  const naturalH = modalImageRef.current?.naturalHeight ?? originRect.height;
+                  const vw = typeof window !== 'undefined' ? window.innerWidth : naturalW;
+                  const vh = typeof window !== 'undefined' ? window.innerHeight : naturalH;
+                  const maxW = Math.floor(vw * 0.9);
+                  const maxH = Math.floor(vh * 0.86);
+                  const scale = Math.min(1, maxW / naturalW, maxH / naturalH);
+                  const targetW = Math.max(160, Math.round(naturalW * scale));
+                  const targetH = Math.max(120, Math.round(naturalH * scale));
+
+                  // compute translate delta from viewport center to origin center
+                  const tx = Math.round(vw / 2);
+                  const ty = Math.round(vh / 2);
+                  const dx = Math.round(ox - tx);
+                  const dy = Math.round(oy - ty);
+
+                  // compute initial scale relative to target to simulate bubble size
+                  const initialScale = Math.max(0.12, Math.min(1, originRect.width / targetW));
+                  const from = `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(${initialScale})`;
+                  const to = `translate(-50%,-50%) translate(0px, 0px) scale(1)`;
+
+                  // If showing a chat (text) modal, allow automatic width/height
+                  // so the text won't be constrained by min/max widths or box clipping.
+                  if (selected?.type === "chat") {
+                    return {
+                      position: 'fixed', left: '50%', top: '50%',
+                      width: 'auto', height: 'auto',
+                      transform: modalVisible ? to : from,
+                      transition: 'transform 300ms cubic-bezier(.2,.9,.2,1), opacity 200ms ease',
+                      borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', overflow: 'visible', zIndex: 500,
+                    };
+                  }
+
+                  // keep wrapper at target size at all times to avoid collapsed bounding boxes
+                  return {
+                    position: 'fixed', left: '50%', top: '50%',
+                    width: `${Math.round(targetW)}px`, height: `${Math.round(targetH)}px`,
+                    transform: modalVisible ? to : from,
+                    transition: 'transform 300ms cubic-bezier(.2,.9,.2,1), opacity 200ms ease',
+                    borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden', zIndex: 500,
+                  };
+                })()}
+              >
+              <button
+                onClick={() => closeModal()}
+                aria-label="close"
+                style={{
+                  position: "absolute", right: -6, top: -6, zIndex: 130,
+                  background: "rgba(0,0,0,0.4)", color: "#fff",
+                  border: "1px solid rgba(255,255,255,0.06)", borderRadius: 999, padding: "6px 8px",
+                  cursor: "pointer",
+                }}
+              >✕</button>
+
+                {selected.type === "photo" ? (
+                  <img
+                    ref={modalImageRef}
+                    src={selected.src}
+                    alt=""
+                    onLoad={() => console.log('[Dreamy] modal image loaded', modalImageRef.current?.naturalWidth, modalImageRef.current?.naturalHeight)}
+                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", boxShadow: "0 10px 40px rgba(0,0,0,0.6)", background: "rgba(255,255,255,0.02)" }}
+                  />
+                ) : (
+                  <div style={{
+                    padding: modalVisible ? "13px 16px" : "10px 13px", borderRadius: 18,
+                    background: "rgba(38,0,78,0.38)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(200,100,255,0.22)",
+                    boxShadow: "0 0 14px rgba(180,60,255,0.18),0 0 28px rgba(255,40,180,0.07),inset 0 1px 0 rgba(255,255,255,0.07)",
+                    color: "#ffdff6",
+                    fontFamily: "'Caveat', cursive", fontSize: modalVisible ? 23 : 20, lineHeight: 1.35,
+                    whiteSpace: "nowrap", overflowX: "auto",
+                  }}>{selected.content}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Back — very subtle */}
         <button
