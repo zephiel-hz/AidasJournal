@@ -43,14 +43,14 @@ const MESSAGES = [
   "moodbooster bgt", "kepikiran terus", "stay terus 🥰", "✨💕",
   "favoritku", "💌", "jangan ngilang ya", "💗", "kamu pasti bisa",
   "haii cantikk", "jangan nyerah ya", "🌸", "cakep as always", "💫",
-  "cantik bgt", "gemes bgt", "🫶", "anak baik", "manis",
+  "cantik bgt", "gemes bgt", "🫶", "MBG (My Bojo Gueh)", "manis",
   "gemes 🌙", "⭐", "halo manis", "💝", "kamu hebat",
   "hehe", "🌺", "seneng deh", "💜", "cantik parah",
   "malu banget -//-", "lucu", "💓", "bikin salting", "keren",
   "jangan asing", "jangan ngilang dong", "pengen ketemu", "🌙✨",
   "paling nyaman", "asik orangnya", "pengen ngobrol terus", "manisnya 🌸",
   "semangat ya ✨", "good luck hari ini!", "proud of u", "jangan lupa senyum",
-  "😝😝😝", "MBG (My Bojo Gueh)",
+  "😝😝😝",
 ];
 
 const IMAGE_GRADIENTS = [
